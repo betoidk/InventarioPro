@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "detector": "enabled",
+  "auto_run_after": ["public/index.html"],
+  "rules": [
+    "contrast",
+    "a11y",
+    "responsive",
+    "performance",
+    "spacing",
+    "typography"
+  ],
+  "ignore_files": [],
+  "ignore_rules": [],
+  "ignore_values": [],
+  "last_run": null
+}
