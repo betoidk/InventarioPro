@@ -1,0 +1,22 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /InventarioPro/
+
+    # No reescribir archivos o directorios reales
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Permitir acceso directo a /src/
+    RewriteRule ^src/ - [L]
+
+    # Redirigir todo lo demás a src/public/index.html
+    RewriteRule ^(.*)$ src/public/index.html [L]
+</IfModule>
+
+# Revalidar el HTML en cada carga para que nunca quede una versión vieja en caché
+<IfModule mod_headers.c>
+    <FilesMatch "\.html$">
+        Header set Cache-Control "no-cache"
+    </FilesMatch>
+</IfModule>
