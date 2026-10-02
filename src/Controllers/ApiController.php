@@ -9,10 +9,10 @@ if ($id && !is_numeric($id)) {
     $id = null;
 }
 
-function responderError(int $codigo, string $mensaje, ?string $campo = null): void
+function responderError(int $codigo, string $mensaje): void
 {
     http_response_code($codigo);
-    echo json_encode(['error' => $mensaje, 'campo' => $campo]);
+    echo json_encode(['error' => $mensaje]);
     exit;
 }
 
@@ -88,7 +88,9 @@ if ($resource === 'categorias') {
         $data = json_decode(file_get_contents('php://input'), true);
 
         if (!$data || !isset($data['nombre']) || empty($data['nombre'])) {
-            responderError(400, 'El nombre es requerido', 'nombre');
+            http_response_code(400);
+            echo json_encode(['error' => 'El nombre es requerido']);
+            exit;
         }
 
         $stmt = $pdo->prepare("INSERT INTO categorias (nombre, descripcion, icono, color_hex) VALUES (?, ?, ?, ?)");
@@ -136,10 +138,14 @@ elseif ($resource === 'productos') {
         $data = json_decode(file_get_contents('php://input'), true);
 
         if (!$data || !isset($data['nombre']) || empty($data['nombre'])) {
-            responderError(400, 'El nombre es requerido', 'nombre');
+            http_response_code(400);
+            echo json_encode(['error' => 'El nombre es requerido']);
+            exit;
         }
         if (!isset($data['sku']) || empty($data['sku'])) {
-            responderError(400, 'El SKU es requerido', 'sku');
+            http_response_code(400);
+            echo json_encode(['error' => 'El SKU es requerido']);
+            exit;
         }
 
         $ubicaciones = leerUbicaciones($data);
