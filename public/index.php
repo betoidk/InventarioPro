@@ -23,8 +23,10 @@ if ($resource) {
             3819 => 'La cantidad y los precios no pueden ser negativos.',
         ];
         $codigo = $e->errorInfo[1] ?? null;
+        // Lets the form highlight the input that caused a duplicate.
+        $campo = $codigo === 1062 ? ($resource === 'productos' ? 'sku' : 'nombre') : null;
         http_response_code(isset($mensajes[$codigo]) ? 409 : 500);
-        echo json_encode(['error' => $mensajes[$codigo] ?? 'Error de base de datos.']);
+        echo json_encode(['error' => $mensajes[$codigo] ?? 'Error de base de datos.', 'campo' => $campo]);
     }
 } else {
     include __DIR__ . '/index.html';
