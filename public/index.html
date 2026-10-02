@@ -19,10 +19,16 @@
         --bg-primary: #ffffff;
         --bg-secondary: #f5f5f7;
         --text-primary: #1d1d1f;
-        --text-secondary: #86868b;
+        --text-secondary: #6e6e73;
         --border-color: rgba(229, 229, 234, 0.5);
         --header-bg: rgba(255, 255, 255, 0.7);
         --track: #e5e5ea;
+        /* Text-safe colors: each one reaches 4.5:1 on this theme's surfaces. */
+        --accent-text: #0066cc;
+        --danger-text: #c4001a;
+        --success-text: #1e7a34;
+        --info-text: #00639c;
+        --focus-ring: #0066cc;
       }
 
       [data-theme="dark"] {
@@ -33,6 +39,11 @@
         --border-color: rgba(255, 255, 255, 0.1);
         --header-bg: rgba(29, 29, 31, 0.7);
         --track: #3a3a3c;
+        --accent-text: #409cff;
+        --danger-text: #ff6961;
+        --success-text: #30d158;
+        --info-text: #64d2ff;
+        --focus-ring: #409cff;
       }
 
       * {
@@ -103,7 +114,9 @@
         border: none;
         cursor: pointer;
         font-size: 1.5rem;
-        padding: 0.5rem;
+        width: 44px;
+        height: 44px;
+        padding: 0;
         border-radius: 50%;
         transition: background 0.2s;
       }
@@ -149,7 +162,7 @@
 
       .nav-tab.active {
         border-bottom-color: #0071e3;
-        color: #0071e3;
+        color: var(--accent-text);
       }
 
       .content {
@@ -232,8 +245,11 @@
       }
 
       td:last-child .btn {
-        display: inline-block;
-        padding: 0.6rem;
+        display: inline-flex;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        padding: 0;
         margin-right: 0.5rem;
         vertical-align: middle;
       }
@@ -307,7 +323,7 @@
 
       .btn-edit {
         background: var(--bg-secondary);
-        color: #0071e3;
+        color: var(--accent-text);
         padding: 0.6rem;
         border-radius: 8px;
       }
@@ -451,7 +467,8 @@
         position: fixed;
         bottom: 2rem;
         right: 2rem;
-        background: #34c759;
+        /* Dark enough for white text in both themes. */
+        background: #1e7a34;
         color: white;
         padding: 1rem 1.5rem;
         border-radius: 12px;
@@ -656,6 +673,76 @@
         display: none !important;
       }
 
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      /* One visible focus ring for every control; inputs keep their own glow. */
+      :focus-visible {
+        outline: 2px solid var(--focus-ring);
+        outline-offset: 2px;
+      }
+
+      fieldset.form-group {
+        border: 0;
+        padding: 0;
+        margin-left: 0;
+        margin-right: 0;
+        min-width: 0;
+      }
+
+      legend {
+        display: block;
+        padding: 0;
+        margin-bottom: 0.75rem;
+        font-weight: 500;
+        font-size: 0.95rem;
+        color: var(--text-primary);
+      }
+
+      .form-error {
+        margin: 0 0 1rem;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--danger-text);
+        background: color-mix(in srgb, var(--danger-text) 10%, transparent);
+        color: var(--danger-text);
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+
+      [aria-invalid="true"] {
+        border-color: var(--danger-text) !important;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+
+        .btn-primary:hover {
+          transform: none;
+        }
+
+        /* Loading feedback stays: a small spinner is not vestibular motion. */
+        .spinner {
+          animation-duration: 600ms !important;
+          animation-iteration-count: infinite !important;
+        }
+      }
+
       /* ALMACÉN */
       .almacen-nota {
         color: var(--text-secondary);
@@ -804,7 +891,7 @@
         border: none;
         padding: 0;
         font: inherit;
-        color: #0071e3;
+        color: var(--accent-text);
         text-decoration: underline;
         cursor: pointer;
       }
@@ -1049,7 +1136,7 @@
 
       .color-label {
         font-size: 0.85rem;
-        color: #86868b;
+        color: var(--text-secondary);
         font-weight: 500;
       }
 
@@ -1107,8 +1194,14 @@
           background: transparent;
         }
 
+        /* Visually hidden but still read, so each cell keeps its column header. */
         thead {
-          display: none;
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          white-space: nowrap;
         }
 
         tbody {
@@ -1213,7 +1306,7 @@
     </style>
   </head>
   <body>
-    <div class="header">
+    <header class="header">
       <div class="container">
         <div class="header-content">
           <h1 class="brand">
@@ -1234,23 +1327,27 @@
           </button>
         </div>
       </div>
-    </div>
+    </header>
 
-    <div class="container">
-      <div class="nav-tabs">
-        <button class="nav-tab active" onclick="showTab('productos')">
-          Productos
-        </button>
-        <button class="nav-tab" onclick="showTab('categorias')">
-          Categorías
-        </button>
-        <button class="nav-tab" onclick="showTab('almacen')">Almacén</button>
-      </div>
+    <main class="container">
+      <nav aria-label="Secciones">
+        <div class="nav-tabs" role="tablist" onkeydown="moverEntrePestanas(event)">
+          <button class="nav-tab active" role="tab" id="tab-productos" aria-selected="true" aria-controls="productos" onclick="showTab('productos')">
+            Productos
+          </button>
+          <button class="nav-tab" role="tab" id="tab-categorias" aria-selected="false" aria-controls="categorias" tabindex="-1" onclick="showTab('categorias')">
+            Categorías
+          </button>
+          <button class="nav-tab" role="tab" id="tab-almacen" aria-selected="false" aria-controls="almacen" tabindex="-1" onclick="showTab('almacen')">
+            Almacén
+          </button>
+        </div>
+      </nav>
 
       <!-- PRODUCTOS -->
-      <div id="productos" class="content active">
+      <div id="productos" class="content active" role="tabpanel" aria-labelledby="tab-productos">
         <h2>Productos</h2>
-        <button class="btn btn-primary" onclick="showForm('producto')">
+        <button class="btn btn-primary" id="btn-nuevo-producto" onclick="showForm('producto')">
           <svg class="icon" aria-hidden="true">
             <use href="assets/icons.svg#i-plus"></use>
           </svg>
@@ -1276,8 +1373,8 @@
               cursor: pointer;
               color: var(--text-secondary);
               padding: 0;
-              width: 30px;
-              height: 30px;
+              width: 44px;
+              height: 44px;
               display: flex;
               align-items: center;
               justify-content: center;
@@ -1290,32 +1387,32 @@
           <h3>Agregar Producto</h3>
           <form onsubmit="guardarProducto(event)">
             <div class="form-group">
-              <label>Nombre</label>
+              <label for="prod-nombre">Nombre</label>
               <input type="text" id="prod-nombre" required />
             </div>
             <div class="form-group">
-              <label>SKU</label>
+              <label for="prod-sku">SKU</label>
               <input type="text" id="prod-sku" required />
             </div>
             <div class="form-group">
-              <label>Categoría</label>
+              <label for="prod-categoria">Categoría</label>
               <select id="prod-categoria" required></select>
             </div>
             <div class="form-group" id="prod-cantidad-grupo">
               <label for="prod-cantidad">Cantidad</label>
               <input type="number" id="prod-cantidad" value="0" min="0" />
             </div>
-            <div class="form-group" id="prod-ubicaciones-grupo" hidden>
-              <label>Cantidad por almacén</label>
+            <fieldset class="form-group" id="prod-ubicaciones-grupo" hidden>
+              <legend>Cantidad por almacén</legend>
               <div
                 id="prod-ubicaciones"
                 class="ubic-lista"
                 oninput="actualizarTotalUbicaciones()"
               ></div>
               <p class="alm-total" id="prod-ubic-total" aria-live="polite"></p>
-            </div>
+            </fieldset>
             <div class="form-group">
-              <label>Precio Unitario</label>
+              <label for="prod-precio">Precio Unitario</label>
               <input type="number" id="prod-precio" step="0.01" min="0" />
             </div>
             <div class="form-group">
@@ -1323,9 +1420,10 @@
               <input type="number" id="prod-compra" step="0.01" min="0" />
             </div>
             <div class="form-group">
-              <label>Descripción</label>
+              <label for="prod-desc">Descripción</label>
               <textarea id="prod-desc"></textarea>
             </div>
+            <p class="form-error" id="producto-error" role="alert" hidden></p>
             <button class="btn btn-primary" type="submit">Guardar</button>
           </form>
         </div>
@@ -1404,7 +1502,7 @@
                 </div>
                 <div
                   id="bajo-stock-count"
-                  style="font-size: 1.8rem; font-weight: 700; color: #ff3b30"
+                  style="font-size: 1.8rem; font-weight: 700; color: var(--danger-text)"
                 >
                   0
                 </div>
@@ -1427,7 +1525,7 @@
                 </div>
                 <div
                   id="alto-stock-count"
-                  style="font-size: 1.8rem; font-weight: 700; color: #34c759"
+                  style="font-size: 1.8rem; font-weight: 700; color: var(--success-text)"
                 >
                   0
                 </div>
@@ -1457,9 +1555,9 @@
       </div>
 
       <!-- CATEGORÍAS -->
-      <div id="categorias" class="content">
+      <div id="categorias" class="content" role="tabpanel" aria-labelledby="tab-categorias">
         <h2>Categorías</h2>
-        <button class="btn btn-primary" onclick="showForm('categoria')">
+        <button class="btn btn-primary" id="btn-nuevo-categoria" onclick="showForm('categoria')">
           <svg class="icon" aria-hidden="true">
             <use href="assets/icons.svg#i-plus"></use>
           </svg>
@@ -1485,8 +1583,8 @@
               cursor: pointer;
               color: var(--text-secondary);
               padding: 0;
-              width: 30px;
-              height: 30px;
+              width: 44px;
+              height: 44px;
               display: flex;
               align-items: center;
               justify-content: center;
@@ -1499,20 +1597,15 @@
           <h3>Agregar Categoría</h3>
           <form onsubmit="guardarCategoria(event)">
             <div class="form-group">
-              <label>Nombre</label>
+              <label for="cat-nombre">Nombre</label>
               <input type="text" id="cat-nombre" required />
             </div>
+            <fieldset class="form-group">
+              <legend>Icono</legend>
+              <div class="icon-grid" id="cat-icon-grid"></div>
+            </fieldset>
             <div class="form-group">
-              <label id="cat-icono-label">Icono</label>
-              <div
-                class="icon-grid"
-                id="cat-icon-grid"
-                role="radiogroup"
-                aria-labelledby="cat-icono-label"
-              ></div>
-            </div>
-            <div class="form-group">
-              <label>Color</label>
+              <label for="cat-color">Color</label>
               <div class="color-picker-container">
                 <div class="color-input-wrapper">
                   <input type="color" id="cat-color" value="#0071E3" />
@@ -1521,9 +1614,10 @@
               </div>
             </div>
             <div class="form-group">
-              <label>Descripción</label>
+              <label for="cat-desc">Descripción</label>
               <textarea id="cat-desc"></textarea>
             </div>
+            <p class="form-error" id="categoria-error" role="alert" hidden></p>
             <button class="btn btn-primary" type="submit">Guardar</button>
           </form>
         </div>
@@ -1541,7 +1635,7 @@
       </div>
 
       <!-- ALMACÉN -->
-      <div id="almacen" class="content">
+      <div id="almacen" class="content" role="tabpanel" aria-labelledby="tab-almacen">
         <h2>Almacén</h2>
 
         <div id="almacen-setup" class="form-section" hidden>
@@ -1571,13 +1665,14 @@
               Agregar almacén
             </button>
             <p class="alm-total" id="alm-total" aria-live="polite"></p>
+            <p class="form-error" id="almacen-error" role="alert" hidden></p>
             <div class="alm-acciones">
               <button class="btn btn-primary" type="submit">Guardar</button>
               <button
                 class="btn btn-edit"
                 type="button"
                 id="alm-cancelar"
-                onclick="cargarAlmacen()"
+                onclick="cancelarAlmacen()"
                 hidden
               >
                 Cancelar
@@ -1589,7 +1684,7 @@
         <div id="almacen-panel" hidden>
           <div class="almacen-head">
             <p id="alm-resumen" class="almacen-nota"></p>
-            <button class="btn btn-edit" type="button" onclick="editarAlmacen()">
+            <button class="btn btn-edit" type="button" id="alm-editar" onclick="editarAlmacen()">
               Editar configuración
             </button>
           </div>
@@ -1627,9 +1722,11 @@
           </div>
         </div>
       </div>
-    </div>
+    </main>
 
     <div id="chart-tip" class="chart-tip" hidden></div>
+    <!-- Persistent live region: announcements only work if the region exists before its text changes. -->
+    <div id="anuncio" class="sr-only" role="status" aria-live="polite"></div>
 
     <script>
       const API = "/InventarioPro/public/index.php";
@@ -1645,6 +1742,23 @@
             `;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 4000);
+        anunciar(mensaje);
+      }
+
+      function anunciar(mensaje) {
+        const region = document.getElementById("anuncio");
+        region.textContent = "";
+        // Clearing first and writing a moment later makes repeated identical messages announce again.
+        setTimeout(() => (region.textContent = mensaje), 100);
+      }
+
+      // On phones the tables use display:flex, which drops native table semantics; explicit roles keep them.
+      function rolesDeTabla(tabla) {
+        tabla.setAttribute("role", "table");
+        tabla.querySelectorAll("thead, tbody").forEach((g) => g.setAttribute("role", "rowgroup"));
+        tabla.querySelectorAll("tr").forEach((f) => f.setAttribute("role", "row"));
+        tabla.querySelectorAll("th").forEach((c) => c.setAttribute("role", "columnheader"));
+        tabla.querySelectorAll("td").forEach((c) => c.setAttribute("role", "cell"));
       }
 
       function setupScrollReveal() {
@@ -1776,12 +1890,14 @@
       }
 
       function setThemeIcon(theme) {
-        document
-          .querySelector(".theme-toggle use")
-          .setAttribute(
-            "href",
-            `${ICON_SPRITE}#i-${theme === "dark" ? "moon" : "sun"}`,
-          );
+        const boton = document.querySelector(".theme-toggle");
+        boton
+          .querySelector("use")
+          .setAttribute("href", `${ICON_SPRITE}#i-${theme === "dark" ? "moon" : "sun"}`);
+        // The name says what pressing does, not which mode is on.
+        const accion = theme === "dark" ? "Activar modo claro" : "Activar modo oscuro";
+        boton.setAttribute("aria-label", accion);
+        boton.title = accion;
       }
 
       function initTheme() {
@@ -1794,34 +1910,106 @@
       function showTab(tab) {
         document
           .querySelectorAll(".content")
-          .forEach((el) => el.classList.remove("active"));
-        document
-          .querySelectorAll(".nav-tab")
-          .forEach((el) => el.classList.remove("active"));
-        document.getElementById(tab).classList.add("active");
-        event.target.classList.add("active");
+          .forEach((el) => el.classList.toggle("active", el.id === tab));
+        document.querySelectorAll(".nav-tab").forEach((boton) => {
+          const activa = boton.getAttribute("aria-controls") === tab;
+          boton.classList.toggle("active", activa);
+          boton.setAttribute("aria-selected", activa);
+          boton.tabIndex = activa ? 0 : -1;
+        });
 
         if (tab === "productos") cargarProductos();
         if (tab === "categorias") cargarCategorias();
         if (tab === "almacen") cargarAlmacen();
       }
 
-      function showForm(type) {
-        const form = document.getElementById(type + "-form");
-        form.style.display = form.style.display === "none" ? "block" : "none";
-        if (form.style.display === "none") {
-          resetForm(type);
-        } else if (type === "producto") {
-          prepararUbicaciones();
-        } else if (type === "categoria") {
-          const colorInput = document.getElementById("cat-color");
-          colorInput.oninput = (e) => updateColorLabel(e.target.value);
-        }
+      // Tab pattern: arrows, Home and End move between tabs; Tab leaves the tab list.
+      function moverEntrePestanas(e) {
+        const tabs = [...document.querySelectorAll(".nav-tab")];
+        const i = tabs.indexOf(document.activeElement);
+        if (i < 0) return;
+        const destino = {
+          ArrowRight: (i + 1) % tabs.length,
+          ArrowLeft: (i - 1 + tabs.length) % tabs.length,
+          Home: 0,
+          End: tabs.length - 1,
+        }[e.key];
+        if (destino === undefined) return;
+        e.preventDefault();
+        tabs[destino].focus();
+        tabs[destino].click();
       }
 
+      function showForm(type) {
+        const panel = document.getElementById(type + "-form");
+        if (panel.style.display !== "none") return closeForm(type);
+        if (type === "producto") prepararUbicaciones();
+        abrirFormulario(type);
+      }
+
+      let focoAnterior = null;
+
+      // Shows a form panel, moves focus into it and remembers which control opened it.
+      function abrirFormulario(type) {
+        const panel = document.getElementById(type + "-form");
+        focoAnterior = document.activeElement;
+        limpiarErrorFormulario(type);
+        panel.style.display = "block";
+        panel.querySelector("input:not([type=radio]), select, textarea").focus();
+      }
+
+      // Returns focus to the opener, or to the "new" button when the opener was re-rendered away.
       function closeForm(type) {
         document.getElementById(type + "-form").style.display = "none";
         resetForm(type);
+        const destino =
+          focoAnterior && document.contains(focoAnterior)
+            ? focoAnterior
+            : document.getElementById(`btn-nuevo-${type}`);
+        destino?.focus();
+        focoAnterior = null;
+      }
+
+      // Maps the API's field names to each form's inputs.
+      const CAMPOS_FORMULARIO = {
+        producto: { nombre: "prod-nombre", sku: "prod-sku" },
+        categoria: { nombre: "cat-nombre" },
+      };
+
+      function mostrarErrorFormulario(type, error) {
+        const caja = document.getElementById(`${type}-error`);
+        caja.textContent = error.message;
+        caja.hidden = false;
+        const campo = document.getElementById(CAMPOS_FORMULARIO[type]?.[error.campo]);
+        if (campo) {
+          campo.setAttribute("aria-invalid", "true");
+          campo.setAttribute("aria-describedby", caja.id);
+          campo.focus();
+        }
+      }
+
+      function limpiarErrorFormulario(type) {
+        const caja = document.getElementById(`${type}-error`);
+        caja.hidden = true;
+        caja.textContent = "";
+        document.querySelectorAll(`[aria-describedby="${caja.id}"]`).forEach((campo) => {
+          campo.removeAttribute("aria-invalid");
+          campo.removeAttribute("aria-describedby");
+        });
+      }
+
+      // Spinner while saving; the hidden text keeps the button's purpose audible.
+      function botonCargando(btn) {
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.setAttribute("aria-busy", "true");
+        btn.innerHTML =
+          '<span class="spinner" aria-hidden="true"></span><span class="sr-only">Guardando…</span>';
+        return () => {
+          btn.disabled = false;
+          btn.removeAttribute("aria-busy");
+          btn.innerHTML = original;
+        };
       }
 
       document.addEventListener("keydown", (e) => {
@@ -1859,6 +2047,7 @@
           document.getElementById("cat-color").value = DEFAULT_CAT_COLOR;
           updateColorLabel(DEFAULT_CAT_COLOR);
         }
+        limpiarErrorFormulario(type);
       }
 
       async function cargarCategorias() {
@@ -1876,7 +2065,7 @@
                 (cat) => `
                         <tr class="reveal">
                             <td data-label="Nombre"><span class="cat-name">${catTile(cat.icono, cat.color_hex)}${cat.nombre}</span></td>
-                            <td data-label="Color"><div class="color-badge" style="background: ${safeCatColor(cat.color_hex)}"></div></td>
+                            <td data-label="Color"><div class="color-badge" role="img" aria-label="Color ${safeCatColor(cat.color_hex)}" style="background: ${safeCatColor(cat.color_hex)}"></div></td>
                             <td data-label="Descripción">${cat.descripcion || "-"}</td>
                             <td data-label="Acciones">
                                 <button class="btn btn-edit" onclick="editarCategoria(${cat.id})" aria-label="Editar">
@@ -1891,6 +2080,7 @@
               )
               .join("");
           }
+          rolesDeTabla(tbody.closest("table"));
           setupScrollReveal();
 
           // Llenar select de productos
@@ -1906,7 +2096,11 @@
       async function api(url, options) {
         const res = await fetch(url, options);
         const data = await res.json().catch(() => ({}));
-        if (!res.ok) throw new Error(data.error || "Error del servidor");
+        if (!res.ok) {
+          const error = new Error(data.error || "Error del servidor");
+          error.campo = data.campo;
+          throw error;
+        }
         return data;
       }
 
@@ -2041,9 +2235,16 @@
 
       function editarAlmacen() {
         llenarFormularioAlmacen(almacenesGuardados);
+        limpiarErrorFormulario("almacen");
         document.getElementById("alm-cancelar").hidden = false;
         document.getElementById("almacen-setup").hidden = false;
         document.getElementById("almacen-panel").hidden = true;
+        document.querySelector("#alm-lista .alm-nombre").focus();
+      }
+
+      async function cancelarAlmacen() {
+        await cargarAlmacen();
+        document.getElementById("alm-editar").focus();
       }
 
       async function guardarAlmacen(e) {
@@ -2055,6 +2256,8 @@
           nombre: fila.querySelector(".alm-nombre").value,
           capacidad: fila.querySelector(".alm-capacidad").value,
         }));
+        limpiarErrorFormulario("almacen");
+        const restaurarBoton = botonCargando(e.target.querySelector('button[type="submit"]'));
         try {
           await api(`${API}?resource=almacenes`, {
             method: "PUT",
@@ -2062,9 +2265,12 @@
             body: JSON.stringify({ almacenes }),
           });
           showSuccessToast("Almacenes guardados");
-          cargarAlmacen();
+          restaurarBoton();
+          await cargarAlmacen();
+          document.getElementById("alm-editar").focus();
         } catch (err) {
-          alert(err.message);
+          restaurarBoton();
+          mostrarErrorFormulario("almacen", err);
         }
       }
 
@@ -2290,23 +2496,34 @@
 
       function irARedistribuir() {
         irAlPlan = true;
-        [...document.querySelectorAll(".nav-tab")]
-          .find((b) => b.textContent.trim() === "Almacén")
-          .click();
+        showTab("almacen");
       }
 
       function setupChartTip() {
         const tip = document.getElementById("chart-tip");
         const meter = document.getElementById("alm-meter");
-        meter.addEventListener("mousemove", (e) => {
+        // Pointer events cover mouse hover and touch taps alike.
+        const mostrar = (e) => {
           const seg = e.target.closest("[data-tip]");
           tip.hidden = !seg;
           if (!seg) return;
           tip.textContent = seg.dataset.tip;
-          tip.style.left = e.clientX + 12 + "px";
+          const maxLeft = innerWidth - tip.offsetWidth - 8;
+          tip.style.left = Math.max(8, Math.min(e.clientX + 12, maxLeft)) + "px";
           tip.style.top = e.clientY + 12 + "px";
+        };
+        meter.addEventListener("pointermove", mostrar);
+        meter.addEventListener("pointerdown", mostrar);
+        // A touch tap keeps the tip open until the next tap elsewhere.
+        meter.addEventListener("pointerleave", (e) => {
+          if (e.pointerType === "mouse") tip.hidden = true;
         });
-        meter.addEventListener("mouseleave", () => (tip.hidden = true));
+        document.addEventListener("pointerdown", (e) => {
+          if (!meter.contains(e.target)) tip.hidden = true;
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") tip.hidden = true;
+        });
       }
 
       // Empty number inputs must reach MySQL as NULL, not "".
@@ -2323,7 +2540,7 @@
           return '<span style="color: var(--text-secondary);">-</span>';
         }
         const margen = ((v - c) / v) * 100;
-        const color = margen < 0 ? "#FF3B30" : "var(--text-primary)";
+        const color = margen < 0 ? "var(--danger-text)" : "var(--text-primary)";
         const texto = margen.toLocaleString("es-ES", {
           minimumFractionDigits: 1,
           maximumFractionDigits: 1,
@@ -2333,10 +2550,10 @@
 
       function getStockStatus(cantidad) {
         if (cantidad <= 10)
-          return { status: "bajo", label: "Bajo Stock", color: "#FF3B30" };
+          return { status: "bajo", label: "Bajo Stock", color: "var(--danger-text)" };
         if (cantidad >= 100)
-          return { status: "alto", label: "Alto Stock", color: "#34C759" };
-        return { status: "normal", label: "Normal", color: "#5AC8FA" };
+          return { status: "alto", label: "Alto Stock", color: "var(--success-text)" };
+        return { status: "normal", label: "Normal", color: "var(--info-text)" };
       }
 
       async function cargarProductos() {
@@ -2380,7 +2597,7 @@
                                 <td data-label="SKU"><code style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">${prod.sku}</code></td>
                                 <td data-label="Categoría"><span class="cat-name">${catTile(prod.categoria_icono, prod.categoria_color, "sm")}${prod.categoria}</span></td>
                                 <td data-label="Cantidad">${celdaCantidad(prod)}</td>
-                                <td data-label="Estado"><span style="background: ${statusObj.color}20; color: ${statusObj.color}; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1.5px solid ${statusObj.color}; white-space: nowrap; display: inline-block;">${statusObj.label}</span></td>
+                                <td data-label="Estado"><span style="background: color-mix(in srgb, ${statusObj.color} 12%, transparent); color: ${statusObj.color}; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1.5px solid ${statusObj.color}; white-space: nowrap; display: inline-block;">${statusObj.label}</span></td>
                                 <td data-label="Precio">$${precio}</td>
                                 <td data-label="Margen">${formatMargen(prod.precio_unitario, prod.precio_compra)}</td>
                                 <td data-label="Acciones">
@@ -2421,7 +2638,7 @@
             alertasList.innerHTML = alertasAlmacen + alertas
               .map((alerta) => {
                 const esBajo = alerta.tipo === "bajo";
-                const color = esBajo ? "#FF3B30" : "#34C759";
+                const color = esBajo ? "var(--danger-text)" : "var(--success-text)";
                 const accion = esBajo
                   ? `${icon("alert-triangle")} Re-stock`
                   : `${icon("tag-price")} Oferta`;
@@ -2433,6 +2650,7 @@
               .join("");
           }
 
+          rolesDeTabla(tbody.closest("table"));
           setupScrollReveal();
         } catch (e) {
           console.error(e);
@@ -2455,13 +2673,11 @@
           setSelectedIcon(cat.icono);
 
           updateColorLabel(colorValue);
-          // Dispara el evento para actualizar el label
-          colorInput.dispatchEvent(new Event("input"));
 
           document
             .getElementById("categoria-form")
             .querySelector("h3").textContent = "Editar Categoría";
-          document.getElementById("categoria-form").style.display = "block";
+          abrirFormulario("categoria");
         } catch (e) {
           console.error("Error al editar:", e);
           alert("Error: " + e.message);
@@ -2470,11 +2686,8 @@
 
       async function guardarCategoria(e) {
         e.preventDefault();
-        const btn = e.target.querySelector('button[type="submit"]');
-        const btnText = btn.innerHTML;
-
-        btn.disabled = true;
-        btn.innerHTML = '<div class="spinner"></div>';
+        limpiarErrorFormulario("categoria");
+        const restaurarBoton = botonCargando(e.target.querySelector('button[type="submit"]'));
 
         const data = {
           nombre: document.getElementById("cat-nombre").value,
@@ -2495,14 +2708,12 @@
             body: JSON.stringify(data),
           });
           showSuccessToast(result.mensaje || "Categoría guardada");
-          resetForm("categoria");
-          document.getElementById("categoria-form").style.display = "none";
-          cargarCategorias();
+          restaurarBoton();
+          await cargarCategorias();
+          closeForm("categoria");
         } catch (e) {
-          alert("Error: " + e.message);
-        } finally {
-          btn.disabled = false;
-          btn.innerHTML = btnText;
+          restaurarBoton();
+          mostrarErrorFormulario("categoria", e);
         }
       }
 
@@ -2526,7 +2737,7 @@
           document
             .getElementById("producto-form")
             .querySelector("h3").textContent = "Editar Producto";
-          document.getElementById("producto-form").style.display = "block";
+          abrirFormulario("producto");
         } catch (e) {
           alert("Error: " + e.message);
         }
@@ -2534,11 +2745,8 @@
 
       async function guardarProducto(e) {
         e.preventDefault();
-        const btn = e.target.querySelector('button[type="submit"]');
-        const btnText = btn.innerHTML;
-
-        btn.disabled = true;
-        btn.innerHTML = '<div class="spinner"></div>';
+        limpiarErrorFormulario("producto");
+        const restaurarBoton = botonCargando(e.target.querySelector('button[type="submit"]'));
 
         const data = {
           nombre: document.getElementById("prod-nombre").value,
@@ -2564,14 +2772,12 @@
             body: JSON.stringify(data),
           });
           showSuccessToast(result.mensaje || "Producto guardado");
-          resetForm("producto");
-          document.getElementById("producto-form").style.display = "none";
-          cargarProductos();
+          restaurarBoton();
+          await cargarProductos();
+          closeForm("producto");
         } catch (e) {
-          alert("Error: " + e.message);
-        } finally {
-          btn.disabled = false;
-          btn.innerHTML = btnText;
+          restaurarBoton();
+          mostrarErrorFormulario("producto", e);
         }
       }
 
@@ -2604,6 +2810,7 @@
       initTheme();
       setupIconSelector();
       setupChartTip();
+      document.getElementById("cat-color").oninput = (e) => updateColorLabel(e.target.value);
       cargarCategorias();
       // The stock alerts need the warehouse list first.
       cargarListaAlmacenes().then(cargarProductos);
