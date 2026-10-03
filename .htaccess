@@ -1,0 +1,6 @@
+# Only public/ is the website. Code, config, scripts and .git stay private.
+# No <IfModule>: without mod_rewrite this fails loudly instead of exposing everything.
+Options -Indexes
+RewriteEngine On
+RewriteRule ^$ %{REQUEST_URI}public/ [R=302,L]
+RewriteRule !^public(/|$) - [R=404,L]
