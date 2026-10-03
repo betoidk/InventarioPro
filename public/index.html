@@ -308,7 +308,7 @@
 
       .btn-danger {
         background: var(--bg-secondary);
-        color: #ff3b30;
+        color: var(--danger-text);
         padding: 0.5rem 0.75rem;
         font-size: 0.85rem;
       }
@@ -743,6 +743,112 @@
         }
       }
 
+      /* ACCESO */
+      .acceso {
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        padding: 1.5rem 1rem;
+      }
+
+      .acceso-tarjeta {
+        width: 100%;
+        max-width: 400px;
+        padding: 2rem;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+      }
+
+      .acceso-marca {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+      }
+
+      .acceso h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .btn-ancho {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .ayuda {
+        margin-top: 0.4rem;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+      }
+
+      /* Hidden for non-admins. The API enforces the same rules; this only tidies the UI. */
+      body:not(.es-admin) .solo-admin {
+        display: none !important;
+      }
+
+      .header-acciones {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+
+      .usuario-actual {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-right: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      .check-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+
+      .check-fila {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        min-height: 44px;
+        margin: 0;
+        font-weight: 400;
+      }
+
+      .check-fila input {
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        flex-shrink: 0;
+        accent-color: #0071e3;
+      }
+
+      .estado-usuario {
+        display: inline-block;
+        padding: 0.3rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .estado-usuario.activo {
+        color: var(--success-text);
+        background: color-mix(in srgb, var(--success-text) 12%, transparent);
+      }
+
+      .estado-usuario.baja {
+        color: var(--text-secondary);
+        background: var(--track);
+      }
+
+      td:last-child .btn.btn-texto {
+        width: auto;
+        padding: 0 0.9rem;
+      }
+
       /* ALMACÉN */
       .almacen-nota {
         color: var(--text-secondary);
@@ -1160,7 +1266,7 @@
         }
 
         .nav-tabs {
-          gap: 1.75rem;
+          gap: 1.25rem;
           margin: 0.5rem 0 1rem;
           overflow-x: auto;
           scrollbar-width: none;
@@ -1273,6 +1379,19 @@
           background: var(--bg-primary);
         }
 
+        tbody td:last-child .btn.btn-texto {
+          width: auto;
+          padding: 0 0.9rem;
+        }
+
+        .usuario-actual {
+          display: none;
+        }
+
+        .acceso-tarjeta {
+          padding: 1.5rem 1.25rem;
+        }
+
         td[colspan] {
           display: block;
           border: none;
@@ -1306,6 +1425,61 @@
     </style>
   </head>
   <body>
+    <!-- ACCESO: login, or the first-time admin setup when there are no users yet -->
+    <main id="acceso" class="acceso" hidden>
+      <div class="acceso-tarjeta">
+        <p class="brand acceso-marca">
+          <svg class="icon" aria-hidden="true">
+            <use href="assets/icons.svg#i-package"></use>
+          </svg>
+          Gestor de Inventarios
+        </p>
+
+        <form id="form-login" onsubmit="iniciarSesion(event)" hidden>
+          <h1>Iniciar sesión</h1>
+          <div class="form-group">
+            <label for="login-usuario">Usuario</label>
+            <input type="text" id="login-usuario" autocomplete="username" autocapitalize="none" spellcheck="false" required />
+          </div>
+          <div class="form-group">
+            <label for="login-password">Contraseña</label>
+            <input type="password" id="login-password" autocomplete="current-password" required />
+          </div>
+          <p class="form-error" id="login-error" role="alert" hidden></p>
+          <button class="btn btn-primary btn-ancho" type="submit">Entrar</button>
+        </form>
+
+        <form id="form-setup" onsubmit="configurarAdmin(event)" hidden>
+          <h1>Crea el administrador</h1>
+          <p class="almacen-nota">
+            Es la primera vez que se usa el sistema. Esta cuenta podrá crear
+            usuarios y asignarles almacenes.
+          </p>
+          <div class="form-group">
+            <label for="setup-nombre">Nombre</label>
+            <input type="text" id="setup-nombre" autocomplete="name" required />
+          </div>
+          <div class="form-group">
+            <label for="setup-usuario">Usuario</label>
+            <input type="text" id="setup-usuario" autocomplete="username" autocapitalize="none" spellcheck="false" required aria-describedby="setup-usuario-ayuda" />
+            <p class="ayuda" id="setup-usuario-ayuda">De 3 a 50 caracteres: letras, números, punto o guion.</p>
+          </div>
+          <div class="form-group">
+            <label for="setup-password">Contraseña</label>
+            <input type="password" id="setup-password" autocomplete="new-password" minlength="8" required aria-describedby="setup-password-ayuda" />
+            <p class="ayuda" id="setup-password-ayuda">Mínimo 8 caracteres.</p>
+          </div>
+          <div class="form-group">
+            <label for="setup-confirmar">Repite la contraseña</label>
+            <input type="password" id="setup-confirmar" autocomplete="new-password" minlength="8" required />
+          </div>
+          <p class="form-error" id="setup-error" role="alert" hidden></p>
+          <button class="btn btn-primary btn-ancho" type="submit">Crear y entrar</button>
+        </form>
+      </div>
+    </main>
+
+    <div id="app" hidden>
     <header class="header">
       <div class="container">
         <div class="header-content">
@@ -1315,16 +1489,36 @@
             </svg>
             Gestor de Inventarios
           </h1>
-          <button
-            class="theme-toggle"
-            onclick="toggleTheme()"
-            title="Cambiar tema"
-            aria-label="Cambiar tema"
-          >
-            <svg class="icon" aria-hidden="true">
-              <use href="assets/icons.svg#i-sun"></use>
-            </svg>
-          </button>
+          <div class="header-acciones">
+            <span class="usuario-actual">
+              <svg class="icon" aria-hidden="true">
+                <use href="assets/icons.svg#i-user"></use>
+              </svg>
+              <span id="usuario-nombre"></span>
+            </span>
+            <button
+              class="theme-toggle"
+              id="btn-tema"
+              onclick="toggleTheme()"
+              title="Cambiar tema"
+              aria-label="Cambiar tema"
+            >
+              <svg class="icon" aria-hidden="true">
+                <use href="assets/icons.svg#i-sun"></use>
+              </svg>
+            </button>
+            <button
+              class="theme-toggle"
+              id="btn-salir"
+              onclick="cerrarSesionUI()"
+              title="Cerrar sesión"
+              aria-label="Cerrar sesión"
+            >
+              <svg class="icon" aria-hidden="true">
+                <use href="assets/icons.svg#i-logout"></use>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </header>
@@ -1340,6 +1534,9 @@
           </button>
           <button class="nav-tab" role="tab" id="tab-almacen" aria-selected="false" aria-controls="almacen" tabindex="-1" onclick="showTab('almacen')">
             Almacén
+          </button>
+          <button class="nav-tab solo-admin" role="tab" id="tab-usuarios" aria-selected="false" aria-controls="usuarios" tabindex="-1" onclick="showTab('usuarios')">
+            Usuarios
           </button>
         </div>
       </nav>
@@ -1557,7 +1754,7 @@
       <!-- CATEGORÍAS -->
       <div id="categorias" class="content" role="tabpanel" aria-labelledby="tab-categorias">
         <h2>Categorías</h2>
-        <button class="btn btn-primary" id="btn-nuevo-categoria" onclick="showForm('categoria')">
+        <button class="btn btn-primary solo-admin" id="btn-nuevo-categoria" onclick="showForm('categoria')">
           <svg class="icon" aria-hidden="true">
             <use href="assets/icons.svg#i-plus"></use>
           </svg>
@@ -1627,7 +1824,7 @@
               <th>Nombre</th>
               <th>Color</th>
               <th>Descripción</th>
-              <th>Acciones</th>
+              <th class="solo-admin">Acciones</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -1637,6 +1834,10 @@
       <!-- ALMACÉN -->
       <div id="almacen" class="content" role="tabpanel" aria-labelledby="tab-almacen">
         <h2>Almacén</h2>
+        <p id="alm-sin-acceso" class="almacen-nota" hidden>
+          No tienes almacenes asignados. Pídele al administrador que te asigne
+          uno.
+        </p>
 
         <div id="almacen-setup" class="form-section" hidden>
           <h3>Configura tus almacenes</h3>
@@ -1684,7 +1885,7 @@
         <div id="almacen-panel" hidden>
           <div class="almacen-head">
             <p id="alm-resumen" class="almacen-nota"></p>
-            <button class="btn btn-edit" type="button" id="alm-editar" onclick="editarAlmacen()">
+            <button class="btn btn-edit solo-admin" type="button" id="alm-editar" onclick="editarAlmacen()">
               Editar configuración
             </button>
           </div>
@@ -1722,7 +1923,96 @@
           </div>
         </div>
       </div>
+
+      <!-- USUARIOS (admin) -->
+      <div id="usuarios" class="content solo-admin" role="tabpanel" aria-labelledby="tab-usuarios">
+        <h2>Usuarios</h2>
+        <button class="btn btn-primary" id="btn-nuevo-usuario" onclick="showForm('usuario')">
+          <svg class="icon" aria-hidden="true">
+            <use href="assets/icons.svg#i-plus"></use>
+          </svg>
+          Nuevo usuario
+        </button>
+        <div
+          id="usuario-form"
+          class="form-section"
+          style="display: none; margin-top: 1.5rem; position: relative"
+        >
+          <button
+            type="button"
+            onclick="closeForm('usuario')"
+            class="close-btn"
+            aria-label="Cerrar"
+            style="
+              position: absolute;
+              top: 1.5rem;
+              right: 1.5rem;
+              background: none;
+              border: none;
+              cursor: pointer;
+              color: var(--text-secondary);
+              padding: 0;
+              width: 44px;
+              height: 44px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <svg class="icon" aria-hidden="true">
+              <use href="assets/icons.svg#i-x"></use>
+            </svg>
+          </button>
+          <h3>Nuevo usuario</h3>
+          <form onsubmit="guardarUsuario(event)">
+            <div class="form-group">
+              <label for="usu-nombre">Nombre</label>
+              <input type="text" id="usu-nombre" autocomplete="off" required />
+            </div>
+            <div class="form-group">
+              <label for="usu-usuario">Usuario</label>
+              <input type="text" id="usu-usuario" autocomplete="off" autocapitalize="none" spellcheck="false" required aria-describedby="usu-usuario-ayuda" />
+              <p class="ayuda" id="usu-usuario-ayuda">De 3 a 50 caracteres: letras, números, punto o guion.</p>
+            </div>
+            <div class="form-group">
+              <label for="usu-password">Contraseña</label>
+              <input type="password" id="usu-password" autocomplete="new-password" minlength="8" aria-describedby="usu-password-ayuda" />
+              <p class="ayuda" id="usu-password-ayuda">Mínimo 8 caracteres.</p>
+            </div>
+            <div class="form-group">
+              <label for="usu-rol">Rol</label>
+              <select id="usu-rol" onchange="actualizarRolUsuario()">
+                <option value="usuario">Usuario: solo sus almacenes</option>
+                <option value="admin">Administrador: todo</option>
+              </select>
+            </div>
+            <fieldset class="form-group" id="usu-almacenes-grupo">
+              <legend>Almacenes a los que puede entrar</legend>
+              <div id="usu-almacenes" class="check-lista"></div>
+            </fieldset>
+            <p class="ayuda" id="usu-admin-nota" hidden>
+              El administrador ve y gestiona todos los almacenes.
+            </p>
+            <p class="form-error" id="usuario-error" role="alert" hidden></p>
+            <button class="btn btn-primary" type="submit">Guardar</button>
+          </form>
+        </div>
+        <table id="usuarios-table" style="margin-top: 1.5rem">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Nombre</th>
+              <th>Rol</th>
+              <th>Almacenes</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </main>
+    </div>
 
     <div id="chart-tip" class="chart-tip" hidden></div>
     <!-- Persistent live region: announcements only work if the region exists before its text changes. -->
@@ -1738,7 +2028,7 @@
         toast.className = "success-toast";
         toast.innerHTML = `
                 <div class="success-icon">${icon("check")}</div>
-                <span>${mensaje}</span>
+                <span>${escapeHtml(mensaje)}</span>
             `;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 4000);
@@ -1890,7 +2180,7 @@
       }
 
       function setThemeIcon(theme) {
-        const boton = document.querySelector(".theme-toggle");
+        const boton = document.getElementById("btn-tema");
         boton
           .querySelector("use")
           .setAttribute("href", `${ICON_SPRITE}#i-${theme === "dark" ? "moon" : "sun"}`);
@@ -1921,11 +2211,12 @@
         if (tab === "productos") cargarProductos();
         if (tab === "categorias") cargarCategorias();
         if (tab === "almacen") cargarAlmacen();
+        if (tab === "usuarios") cargarUsuarios();
       }
 
       // Tab pattern: arrows, Home and End move between tabs; Tab leaves the tab list.
       function moverEntrePestanas(e) {
-        const tabs = [...document.querySelectorAll(".nav-tab")];
+        const tabs = [...document.querySelectorAll(".nav-tab")].filter((t) => t.offsetParent !== null);
         const i = tabs.indexOf(document.activeElement);
         if (i < 0) return;
         const destino = {
@@ -1944,6 +2235,10 @@
         const panel = document.getElementById(type + "-form");
         if (panel.style.display !== "none") return closeForm(type);
         if (type === "producto") prepararUbicaciones();
+        if (type === "usuario") {
+          editingUsuarioId = null;
+          prepararFormularioUsuario();
+        }
         abrirFormulario(type);
       }
 
@@ -1963,7 +2258,7 @@
         document.getElementById(type + "-form").style.display = "none";
         resetForm(type);
         const destino =
-          focoAnterior && document.contains(focoAnterior)
+          focoAnterior && focoAnterior !== document.body && document.contains(focoAnterior)
             ? focoAnterior
             : document.getElementById(`btn-nuevo-${type}`);
         destino?.focus();
@@ -1974,6 +2269,8 @@
       const CAMPOS_FORMULARIO = {
         producto: { nombre: "prod-nombre", sku: "prod-sku" },
         categoria: { nombre: "cat-nombre" },
+        usuario: { usuario: "usu-usuario", nombre: "usu-nombre", password: "usu-password" },
+        setup: { usuario: "setup-usuario", nombre: "setup-nombre", password: "setup-password" },
       };
 
       function mostrarErrorFormulario(type, error) {
@@ -1999,12 +2296,11 @@
       }
 
       // Spinner while saving; the hidden text keeps the button's purpose audible.
-      function botonCargando(btn) {
+      function botonCargando(btn, texto = "Guardando…") {
         const original = btn.innerHTML;
         btn.disabled = true;
         btn.setAttribute("aria-busy", "true");
-        btn.innerHTML =
-          '<span class="spinner" aria-hidden="true"></span><span class="sr-only">Guardando…</span>';
+        btn.innerHTML = `<span class="spinner" aria-hidden="true"></span><span class="sr-only">${texto}</span>`;
         return () => {
           btn.disabled = false;
           btn.removeAttribute("aria-busy");
@@ -2046,14 +2342,16 @@
             .reset();
           document.getElementById("cat-color").value = DEFAULT_CAT_COLOR;
           updateColorLabel(DEFAULT_CAT_COLOR);
+        } else if (type === "usuario") {
+          editingUsuarioId = null;
+          document.getElementById("usuario-form").querySelector("form").reset();
         }
         limpiarErrorFormulario(type);
       }
 
       async function cargarCategorias() {
         try {
-          const res = await fetch(`${API}?resource=categorias`);
-          const datos = await res.json();
+          const datos = await api(`${API}?resource=categorias`);
 
           // Llenar tabla
           const tbody = document.querySelector("#categorias-table tbody");
@@ -2064,14 +2362,14 @@
               .map(
                 (cat) => `
                         <tr class="reveal">
-                            <td data-label="Nombre"><span class="cat-name">${catTile(cat.icono, cat.color_hex)}${cat.nombre}</span></td>
+                            <td data-label="Nombre"><span class="cat-name">${catTile(cat.icono, cat.color_hex)}${escapeHtml(cat.nombre)}</span></td>
                             <td data-label="Color"><div class="color-badge" role="img" aria-label="Color ${safeCatColor(cat.color_hex)}" style="background: ${safeCatColor(cat.color_hex)}"></div></td>
-                            <td data-label="Descripción">${cat.descripcion || "-"}</td>
-                            <td data-label="Acciones">
+                            <td data-label="Descripción">${escapeHtml(cat.descripcion || "-")}</td>
+                            <td data-label="Acciones" class="solo-admin">
                                 <button class="btn btn-edit" onclick="editarCategoria(${cat.id})" aria-label="Editar">
                                     ${icon("edit")}
                                 </button>
-                                <button class="btn btn-danger" onclick="confirmarBorrar('categoria', ${cat.id}, '${cat.nombre}')" aria-label="Borrar">
+                                <button class="btn btn-danger" data-nombre="${escapeHtml(cat.nombre)}" onclick="confirmarBorrar('categoria', ${cat.id}, this.dataset.nombre)" aria-label="Borrar">
                                     ${icon("trash")}
                                 </button>
                             </td>
@@ -2086,7 +2384,7 @@
           // Llenar select de productos
           const select = document.getElementById("prod-categoria");
           select.innerHTML = datos
-            .map((cat) => `<option value="${cat.id}">${cat.nombre}</option>`)
+            .map((cat) => `<option value="${cat.id}">${escapeHtml(cat.nombre)}</option>`)
             .join("");
         } catch (e) {
           console.error(e);
@@ -2096,6 +2394,11 @@
       async function api(url, options) {
         const res = await fetch(url, options);
         const data = await res.json().catch(() => ({}));
+        // Session expired or user deactivated while working: start over at the login screen.
+        if (res.status === 401 && usuarioActual) {
+          location.reload();
+          return new Promise(() => {});
+        }
         if (!res.ok) {
           const error = new Error(data.error || "Error del servidor");
           error.campo = data.campo;
@@ -2124,7 +2427,10 @@
           ]);
           almacenesGuardados = almacenes;
           const configurado = almacenes.length > 0;
-          document.getElementById("almacen-setup").hidden = configurado;
+          // Only an admin can create warehouses; anyone else without one just gets a notice.
+          const puedeConfigurar = usuarioActual.rol === "admin";
+          document.getElementById("almacen-setup").hidden = configurado || !puedeConfigurar;
+          document.getElementById("alm-sin-acceso").hidden = configurado || puedeConfigurar;
           document.getElementById("almacen-panel").hidden = !configurado;
           document.getElementById("alm-cancelar").hidden = true;
           if (configurado) renderAlmacen(almacenes, productos);
@@ -2558,8 +2864,7 @@
 
       async function cargarProductos() {
         try {
-          const res = await fetch(`${API}?resource=productos`);
-          const datos = await res.json();
+          const datos = await api(`${API}?resource=productos`);
 
           const tbody = document.querySelector("#productos-table tbody");
           let bajoStockCount = 0,
@@ -2593,9 +2898,9 @@
 
                 return `
                             <tr class="reveal">
-                                <td data-label="Nombre">${prod.nombre}</td>
-                                <td data-label="SKU"><code style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">${prod.sku}</code></td>
-                                <td data-label="Categoría"><span class="cat-name">${catTile(prod.categoria_icono, prod.categoria_color, "sm")}${prod.categoria}</span></td>
+                                <td data-label="Nombre">${escapeHtml(prod.nombre)}</td>
+                                <td data-label="SKU"><code style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">${escapeHtml(prod.sku)}</code></td>
+                                <td data-label="Categoría"><span class="cat-name">${catTile(prod.categoria_icono, prod.categoria_color, "sm")}${escapeHtml(prod.categoria)}</span></td>
                                 <td data-label="Cantidad">${celdaCantidad(prod)}</td>
                                 <td data-label="Estado"><span style="background: color-mix(in srgb, ${statusObj.color} 12%, transparent); color: ${statusObj.color}; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1.5px solid ${statusObj.color}; white-space: nowrap; display: inline-block;">${statusObj.label}</span></td>
                                 <td data-label="Precio">$${precio}</td>
@@ -2604,7 +2909,7 @@
                                     <button class="btn btn-edit" onclick="editarProducto(${prod.id})" aria-label="Editar">
                                         ${icon("edit")}
                                     </button>
-                                    <button class="btn btn-danger" onclick="confirmarBorrar('producto', ${prod.id}, '${prod.nombre}')" aria-label="Borrar">
+                                    <button class="btn btn-danger" data-nombre="${escapeHtml(prod.nombre)}" onclick="confirmarBorrar('producto', ${prod.id}, this.dataset.nombre)" aria-label="Borrar">
                                         ${icon("trash")}
                                     </button>
                                 </td>
@@ -2643,7 +2948,7 @@
                   ? `${icon("alert-triangle")} Re-stock`
                   : `${icon("tag-price")} Oferta`;
                 return `<div style="padding: 0.75rem; background: var(--bg-primary); border-radius: 6px; border-left: 3px solid ${color}; font-size: 0.9rem;">
-                            <div class="cat-name" style="font-weight: 600; gap: 0.5rem;">${catTile(alerta.icono, alerta.color, "sm")}${alerta.nombre}</div>
+                            <div class="cat-name" style="font-weight: 600; gap: 0.5rem;">${catTile(alerta.icono, alerta.color, "sm")}${escapeHtml(alerta.nombre)}</div>
                             <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.5rem;">Stock: ${alerta.cantidad} • <span style="color: ${color}; font-weight: 600;">${accion}</span></div>
                         </div>`;
               })
@@ -2659,8 +2964,7 @@
 
       async function editarCategoria(id) {
         try {
-          const res = await fetch(`${API}?resource=categorias&id=${id}`);
-          const cat = await res.json();
+          const cat = await api(`${API}?resource=categorias&id=${id}`);
 
           console.log("Datos recibidos:", cat);
 
@@ -2719,8 +3023,7 @@
 
       async function editarProducto(id) {
         try {
-          const res = await fetch(`${API}?resource=productos&id=${id}`);
-          const prod = await res.json();
+          const prod = await api(`${API}?resource=productos&id=${id}`);
 
           editingProductoId = id;
           document.getElementById("prod-nombre").value = prod.nombre;
@@ -2806,14 +3109,233 @@
         }
       }
 
+      // SESIÓN
+      let usuarioActual = null;
+
+      async function iniciarApp() {
+        try {
+          const estado = await api(`${API}?resource=sesion`);
+          if (estado.requiereConfiguracion) mostrarAcceso("setup");
+          else if (!estado.usuario) mostrarAcceso("login");
+          else entrar(estado.usuario);
+        } catch (e) {
+          mostrarAcceso("login");
+          mostrarErrorFormulario("login", e);
+        }
+      }
+
+      function mostrarAcceso(modo) {
+        document.getElementById("app").hidden = true;
+        document.getElementById("acceso").hidden = false;
+        document.getElementById("form-login").hidden = modo !== "login";
+        document.getElementById("form-setup").hidden = modo !== "setup";
+        document.querySelector(`#form-${modo} input`).focus();
+      }
+
+      async function entrar(usuario) {
+        usuarioActual = usuario;
+        document.body.classList.toggle("es-admin", usuario.rol === "admin");
+        document.getElementById("usuario-nombre").textContent = usuario.nombre;
+        document.getElementById("btn-salir").setAttribute("aria-label", `Cerrar sesión de ${usuario.nombre}`);
+        document.getElementById("acceso").hidden = true;
+        document.getElementById("app").hidden = false;
+        cargarCategorias();
+        // The stock alerts need the warehouse list first.
+        await cargarListaAlmacenes();
+        showTab("productos");
+      }
+
+      async function iniciarSesion(e) {
+        e.preventDefault();
+        limpiarErrorFormulario("login");
+        const restaurarBoton = botonCargando(e.target.querySelector('button[type="submit"]'), "Entrando…");
+        try {
+          const { usuario } = await api(`${API}?resource=sesion`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              usuario: document.getElementById("login-usuario").value,
+              password: document.getElementById("login-password").value,
+            }),
+          });
+          document.getElementById("form-login").reset();
+          await entrar(usuario);
+        } catch (err) {
+          mostrarErrorFormulario("login", err);
+          document.getElementById("login-password").select();
+        } finally {
+          restaurarBoton();
+        }
+      }
+
+      async function configurarAdmin(e) {
+        e.preventDefault();
+        limpiarErrorFormulario("setup");
+        const password = document.getElementById("setup-password").value;
+        if (password !== document.getElementById("setup-confirmar").value) {
+          return mostrarErrorFormulario("setup", { message: "Las contraseñas no coinciden.", campo: "password" });
+        }
+        const restaurarBoton = botonCargando(e.target.querySelector('button[type="submit"]'), "Creando…");
+        try {
+          const { usuario } = await api(`${API}?resource=configuracion`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              nombre: document.getElementById("setup-nombre").value,
+              usuario: document.getElementById("setup-usuario").value,
+              password,
+            }),
+          });
+          document.getElementById("form-setup").reset();
+          await entrar(usuario);
+        } catch (err) {
+          mostrarErrorFormulario("setup", err);
+        } finally {
+          restaurarBoton();
+        }
+      }
+
+      async function cerrarSesionUI() {
+        try {
+          await api(`${API}?resource=sesion`, { method: "DELETE" });
+        } finally {
+          // A full reload wipes every list the previous user had loaded.
+          location.reload();
+        }
+      }
+
+      // USUARIOS (admin)
+      let usuariosLista = [];
+      let editingUsuarioId = null;
+
+      async function cargarUsuarios() {
+        try {
+          usuariosLista = await api(`${API}?resource=usuarios`);
+          const nombres = new Map(almacenesGuardados.map((a) => [a.id, a.nombre]));
+          const tbody = document.querySelector("#usuarios-table tbody");
+          tbody.innerHTML = usuariosLista
+            .map((u) => {
+              const almacenes =
+                u.rol === "admin"
+                  ? "Todos"
+                  : u.almacenes.map((id) => escapeHtml(nombres.get(id) ?? "")).join(", ") || "Ninguno";
+              const esYo = u.id === usuarioActual.id;
+              const baja = u.activo
+                ? `<button class="btn btn-danger btn-texto" onclick="cambiarEstadoUsuario(${u.id}, false)" aria-label="Dar de baja a ${escapeHtml(u.usuario)}">Dar de baja</button>`
+                : `<button class="btn btn-edit btn-texto" onclick="cambiarEstadoUsuario(${u.id}, true)" aria-label="Reactivar a ${escapeHtml(u.usuario)}">Reactivar</button>`;
+              return `<tr>
+                  <td data-label="Usuario">${escapeHtml(u.usuario)}${esYo ? " (tú)" : ""}</td>
+                  <td data-label="Nombre">${escapeHtml(u.nombre)}</td>
+                  <td data-label="Rol">${u.rol === "admin" ? "Administrador" : "Usuario"}</td>
+                  <td data-label="Almacenes">${almacenes}</td>
+                  <td data-label="Estado"><span class="estado-usuario ${u.activo ? "activo" : "baja"}">${u.activo ? "Activo" : "Dado de baja"}</span></td>
+                  <td data-label="Acciones">
+                    <button class="btn btn-edit" onclick="editarUsuario(${u.id})" aria-label="Editar a ${escapeHtml(u.usuario)}">${icon("edit")}</button>
+                    ${esYo ? "" : baja}
+                  </td>
+                </tr>`;
+            })
+            .join("");
+          rolesDeTabla(tbody.closest("table"));
+        } catch (e) {
+          alert(e.message);
+        }
+      }
+
+      function prepararFormularioUsuario(usuario = null) {
+        const asignados = new Set(usuario?.almacenes ?? []);
+        document.getElementById("usu-almacenes").innerHTML = almacenesGuardados.length
+          ? almacenesGuardados
+              .map(
+                (a) => `<label class="check-fila">
+                    <input type="checkbox" value="${a.id}"${asignados.has(a.id) ? " checked" : ""}>
+                    ${escapeHtml(a.nombre)}
+                  </label>`,
+              )
+              .join("")
+          : '<p class="ayuda">Todavía no hay almacenes. Créalos en la pestaña Almacén.</p>';
+        document.getElementById("usu-nombre").value = usuario?.nombre ?? "";
+        document.getElementById("usu-usuario").value = usuario?.usuario ?? "";
+        document.getElementById("usu-password").value = "";
+        document.getElementById("usu-rol").value = usuario?.rol ?? "usuario";
+        // Required to create; optional on edit, where empty means "keep the current one".
+        document.getElementById("usu-password").required = !usuario;
+        document.getElementById("usu-password-ayuda").textContent = usuario
+          ? "Déjala vacía para no cambiarla. Si la cambias, mínimo 8 caracteres."
+          : "Mínimo 8 caracteres.";
+        document.querySelector("#usuario-form h3").textContent = usuario ? "Editar usuario" : "Nuevo usuario";
+        actualizarRolUsuario();
+      }
+
+      function actualizarRolUsuario() {
+        const esAdminRol = document.getElementById("usu-rol").value === "admin";
+        document.getElementById("usu-almacenes-grupo").hidden = esAdminRol;
+        document.getElementById("usu-admin-nota").hidden = !esAdminRol;
+      }
+
+      function editarUsuario(id) {
+        editingUsuarioId = id;
+        prepararFormularioUsuario(usuariosLista.find((u) => u.id === id));
+        abrirFormulario("usuario");
+      }
+
+      async function guardarUsuario(e) {
+        e.preventDefault();
+        limpiarErrorFormulario("usuario");
+        const data = {
+          nombre: document.getElementById("usu-nombre").value,
+          usuario: document.getElementById("usu-usuario").value,
+          rol: document.getElementById("usu-rol").value,
+          almacenes: [...document.querySelectorAll("#usu-almacenes input:checked")].map((c) => Number(c.value)),
+        };
+        const password = document.getElementById("usu-password").value;
+        if (password) data.password = password;
+
+        const restaurarBoton = botonCargando(e.target.querySelector('button[type="submit"]'));
+        try {
+          const url = editingUsuarioId
+            ? `${API}?resource=usuarios&id=${editingUsuarioId}`
+            : `${API}?resource=usuarios`;
+          const result = await api(url, {
+            method: editingUsuarioId ? "PUT" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+          showSuccessToast(result.mensaje);
+          restaurarBoton();
+          await cargarUsuarios();
+          closeForm("usuario");
+        } catch (err) {
+          restaurarBoton();
+          mostrarErrorFormulario("usuario", err);
+        }
+      }
+
+      async function cambiarEstadoUsuario(id, activar) {
+        const usuario = usuariosLista.find((u) => u.id === id);
+        if (!activar && !confirm(`¿Dar de baja a "${usuario.usuario}"? No podrá iniciar sesión hasta que lo reactives.`)) {
+          return;
+        }
+        try {
+          await api(`${API}?resource=usuarios&id=${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ activo: activar }),
+          });
+          showSuccessToast(activar ? "Usuario reactivado" : "Usuario dado de baja");
+          await cargarUsuarios();
+          document.getElementById("btn-nuevo-usuario").focus();
+        } catch (err) {
+          alert(err.message);
+        }
+      }
+
       // Inicializar
       initTheme();
       setupIconSelector();
       setupChartTip();
       document.getElementById("cat-color").oninput = (e) => updateColorLabel(e.target.value);
-      cargarCategorias();
-      // The stock alerts need the warehouse list first.
-      cargarListaAlmacenes().then(cargarProductos);
+      iniciarApp();
     </script>
   </body>
 </html>
