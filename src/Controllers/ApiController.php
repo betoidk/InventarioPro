@@ -1,5 +1,5 @@
 <?php
-// database.php already required by public/index.php
+// Inventory API. database.php and auth.php are loaded by public/index.php.
 
 $method = $_SERVER['REQUEST_METHOD'];
 $resource = $_GET['resource'] ?? null;
@@ -9,12 +9,7 @@ if ($id && !is_numeric($id)) {
     $id = null;
 }
 
-function responderError(int $codigo, string $mensaje, ?string $campo = null): void
-{
-    http_response_code($codigo);
-    echo json_encode(['error' => $mensaje, 'campo' => $campo]);
-    exit;
-}
+$actual = requerirSesion($pdo);
 
 // Stock per warehouse, grouped by product id.
 function ubicacionesPorProducto(PDO $pdo, ?int $productoId = null): array
@@ -40,8 +35,40 @@ function ubicacionesPorProducto(PDO $pdo, ?int $productoId = null): array
     return $grupos;
 }
 
-// Returns [almacen_id => cantidad] with only positive amounts, or null when the request sends no distribution.
-function leerUbicaciones(array $data): ?array
+// A non-admin sees a product when it has a row in one of their warehouses, or no rows at all
+// (not placed anywhere yet). They only see their own warehouses and a total limited to them.
+function vistaParaUsuario(array $producto, array $filas, array $usuario): ?array
+{
+    if (esAdmin($usuario)) {
+        $producto['ubicaciones'] = $filas;
+        return $producto;
+    }
+    $propias = array_values(array_filter($filas, fn ($u) => puedeUsarAlmacen($usuario, (int) $u['almacen_id'])));
+    if ($filas && !$propias) {
+        return null;
+    }
+    $producto['ubicaciones'] = $propias;
+    $producto['cantidad'] = array_sum(array_column($propias, 'cantidad'));
+    return $producto;
+}
+
+// Stops with 404 when the product does not exist or the user cannot see it. Returns all its stock rows.
+function exigirProductoVisible(PDO $pdo, int $productoId, array $usuario): array
+{
+    $stmt = $pdo->prepare("SELECT id FROM productos WHERE id = ?");
+    $stmt->execute([$productoId]);
+    if (!$stmt->fetch()) {
+        responderError(404, 'Producto no encontrado.');
+    }
+    $filas = ubicacionesPorProducto($pdo, $productoId)[$productoId] ?? [];
+    if (!vistaParaUsuario([], $filas, $usuario)) {
+        responderError(404, 'Producto no encontrado.');
+    }
+    return $filas;
+}
+
+// Returns [almacen_id => cantidad], or null when the request sends no distribution.
+function leerUbicaciones(array $data, array $usuario): ?array
 {
     if (!array_key_exists('ubicaciones', $data)) {
         return null;
@@ -57,24 +84,55 @@ function leerUbicaciones(array $data): ?array
         if ($almacen === false || $cantidad === false || $cantidad < 0) {
             responderError(400, 'Las cantidades por almacén deben ser números enteros de 0 o más.');
         }
-        if ($cantidad > 0) {
-            $ubicaciones[$almacen] = ($ubicaciones[$almacen] ?? 0) + $cantidad;
+        if (!puedeUsarAlmacen($usuario, $almacen)) {
+            responderError(403, 'No tienes acceso a uno de esos almacenes.');
         }
+        $ubicaciones[$almacen] = ($ubicaciones[$almacen] ?? 0) + $cantidad;
     }
     return $ubicaciones;
 }
 
-function guardarUbicaciones(PDO $pdo, int $productoId, array $ubicaciones): void
+// Writes only the warehouses received (already permission-checked); other warehouses' rows are never touched.
+// A row that reaches 0 stays, so the product keeps showing, and alerting as low stock, in that warehouse.
+function guardarUbicaciones(PDO $pdo, int $productoId, array $ubicaciones, bool $anclarSiVacio): void
 {
-    $pdo->prepare("DELETE FROM producto_almacen WHERE producto_id = ?")->execute([$productoId]);
-    $stmt = $pdo->prepare("INSERT INTO producto_almacen (producto_id, almacen_id, cantidad) VALUES (?, ?, ?)");
+    $stmt = $pdo->prepare("SELECT almacen_id FROM producto_almacen WHERE producto_id = ?");
+    $stmt->execute([$productoId]);
+    $existentes = array_flip(array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)));
+
+    $guardar = $pdo->prepare("
+        INSERT INTO producto_almacen (producto_id, almacen_id, cantidad) VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE cantidad = ?
+    ");
+    $sinFila = true;
     foreach ($ubicaciones as $almacen => $cantidad) {
-        $stmt->execute([$productoId, $almacen, $cantidad]);
+        if ($cantidad > 0 || isset($existentes[$almacen])) {
+            $guardar->execute([$productoId, $almacen, $cantidad, $cantidad]);
+            $sinFila = false;
+        }
+    }
+    // A non-admin's item with no stock yet is anchored to their first warehouse; otherwise it would be visible to everyone.
+    if ($sinFila && $anclarSiVacio && $ubicaciones) {
+        $guardar->execute([$productoId, array_key_first($ubicaciones), 0, 0]);
+    }
+    $pdo->prepare("
+        UPDATE productos SET cantidad = (SELECT COALESCE(SUM(cantidad), 0) FROM producto_almacen WHERE producto_id = ?)
+        WHERE id = ?
+    ")->execute([$productoId, $productoId]);
+}
+
+function exigirAlmacenesAsignados(array $usuario): void
+{
+    if (!esAdmin($usuario) && !$usuario['almacenes']) {
+        responderError(403, 'No tienes almacenes asignados. Pídele al administrador que te asigne uno.');
     }
 }
 
-// CATEGORÍAS
+// CATEGORÍAS: everyone reads them (the product form needs them), only admins change them.
 if ($resource === 'categorias') {
+    if ($method !== 'GET') {
+        requerirAdmin($actual);
+    }
     if ($method === 'GET') {
         if ($id) {
             $stmt = $pdo->prepare("SELECT * FROM categorias WHERE id=?");
@@ -118,21 +176,25 @@ elseif ($resource === 'productos') {
             $stmt = $pdo->prepare("SELECT * FROM productos WHERE id=?");
             $stmt->execute([$id]);
             $producto = $stmt->fetch();
-            if ($producto) {
-                $producto['ubicaciones'] = ubicacionesPorProducto($pdo, (int) $id)[$id] ?? [];
+            $producto = $producto ? vistaParaUsuario($producto, ubicacionesPorProducto($pdo, (int) $id)[$id] ?? [], $actual) : null;
+            if (!$producto) {
+                responderError(404, 'Producto no encontrado.');
             }
             echo json_encode($producto);
         } else {
             $stmt = $pdo->query("SELECT p.*, c.nombre as categoria, c.icono as categoria_icono, c.color_hex as categoria_color FROM productos p LEFT JOIN categorias c ON p.categoria_id = c.id ORDER BY p.nombre");
-            $productos = $stmt->fetchAll();
             $ubicaciones = ubicacionesPorProducto($pdo);
-            foreach ($productos as &$producto) {
-                $producto['ubicaciones'] = $ubicaciones[$producto['id']] ?? [];
+            $visibles = [];
+            foreach ($stmt->fetchAll() as $producto) {
+                $vista = vistaParaUsuario($producto, $ubicaciones[$producto['id']] ?? [], $actual);
+                if ($vista) {
+                    $visibles[] = $vista;
+                }
             }
-            unset($producto);
-            echo json_encode($productos);
+            echo json_encode($visibles);
         }
     } elseif ($method === 'POST') {
+        exigirAlmacenesAsignados($actual);
         $data = json_decode(file_get_contents('php://input'), true);
 
         if (!$data || !isset($data['nombre']) || empty($data['nombre'])) {
@@ -142,8 +204,12 @@ elseif ($resource === 'productos') {
             responderError(400, 'El SKU es requerido', 'sku');
         }
 
-        $ubicaciones = leerUbicaciones($data);
-        $cantidad = $ubicaciones === null ? ($data['cantidad'] ?? 0) : array_sum($ubicaciones);
+        $ubicaciones = leerUbicaciones($data, $actual);
+        if ($ubicaciones === null && !esAdmin($actual)) {
+            $ubicaciones = array_fill_keys($actual['almacenes'], 0);
+        }
+        // Without warehouses (admin only) the total is typed directly; otherwise it is derived from the warehouses.
+        $cantidad = $ubicaciones === null ? ($data['cantidad'] ?? 0) : 0;
 
         $pdo->beginTransaction();
         $stmt = $pdo->prepare("
@@ -162,19 +228,20 @@ elseif ($resource === 'productos') {
         ]);
         $nuevoId = (int) $pdo->lastInsertId();
         if ($ubicaciones !== null) {
-            guardarUbicaciones($pdo, $nuevoId, $ubicaciones);
+            guardarUbicaciones($pdo, $nuevoId, $ubicaciones, !esAdmin($actual));
         }
         $pdo->commit();
         echo json_encode(['id' => $nuevoId, 'mensaje' => 'Producto creado']);
     } elseif ($method === 'PUT' && $id) {
+        exigirAlmacenesAsignados($actual);
+        exigirProductoVisible($pdo, (int) $id, $actual);
         $data = json_decode(file_get_contents('php://input'), true);
-        $ubicaciones = leerUbicaciones($data);
-        $cantidad = $ubicaciones === null ? ($data['cantidad'] ?? 0) : array_sum($ubicaciones);
+        $ubicaciones = leerUbicaciones($data, $actual);
 
         $pdo->beginTransaction();
         $stmt = $pdo->prepare("
             UPDATE productos
-            SET nombre=?, descripcion=?, sku=?, categoria_id=?, cantidad=?, precio_unitario=?, precio_compra=?, estado=?
+            SET nombre=?, descripcion=?, sku=?, categoria_id=?, precio_unitario=?, precio_compra=?, estado=?
             WHERE id=?
         ");
         $stmt->execute([
@@ -182,27 +249,45 @@ elseif ($resource === 'productos') {
             $data['descripcion'] ?? null,
             $data['sku'],
             $data['categoria_id'],
-            $cantidad,
             $data['precio_unitario'] ?? null,
             $data['precio_compra'] ?? null,
             $data['estado'] ?? 'activo',
             $id
         ]);
         if ($ubicaciones !== null) {
-            guardarUbicaciones($pdo, (int) $id, $ubicaciones);
+            guardarUbicaciones($pdo, (int) $id, $ubicaciones, !esAdmin($actual));
+        } elseif (esAdmin($actual)) {
+            $pdo->prepare("UPDATE productos SET cantidad = ? WHERE id = ?")->execute([$data['cantidad'] ?? 0, $id]);
         }
         $pdo->commit();
         echo json_encode(['mensaje' => 'Producto actualizado']);
     } elseif ($method === 'DELETE' && $id) {
+        exigirAlmacenesAsignados($actual);
+        $filas = exigirProductoVisible($pdo, (int) $id, $actual);
+        foreach ($filas as $fila) {
+            if (!puedeUsarAlmacen($actual, (int) $fila['almacen_id'])) {
+                responderError(403, 'Este producto también está en almacenes que no tienes asignados. Pídele al administrador que lo borre.');
+            }
+        }
         $stmt = $pdo->prepare("DELETE FROM productos WHERE id=?");
         $stmt->execute([$id]);
         echo json_encode(['mensaje' => 'Producto eliminado']);
     }
 } elseif ($resource === 'almacenes') {
     if ($method === 'GET') {
-        $stmt = $pdo->query("SELECT id, nombre, capacidad FROM almacenes ORDER BY id");
-        echo json_encode($stmt->fetchAll());
+        if (esAdmin($actual)) {
+            $stmt = $pdo->query("SELECT id, nombre, capacidad FROM almacenes ORDER BY id");
+            echo json_encode($stmt->fetchAll());
+        } elseif ($actual['almacenes']) {
+            $marcadores = implode(',', array_fill(0, count($actual['almacenes']), '?'));
+            $stmt = $pdo->prepare("SELECT id, nombre, capacidad FROM almacenes WHERE id IN ($marcadores) ORDER BY id");
+            $stmt->execute($actual['almacenes']);
+            echo json_encode($stmt->fetchAll());
+        } else {
+            echo json_encode([]);
+        }
     } elseif ($method === 'PUT') {
+        requerirAdmin($actual);
         // The form sends the whole list. Rows keep their id so stock stays linked to its warehouse.
         $data = json_decode(file_get_contents('php://input'), true);
         $lista = $data['almacenes'] ?? null;
@@ -253,7 +338,6 @@ elseif ($resource === 'productos') {
         $pdo->beginTransaction();
         $leer = $pdo->prepare("SELECT cantidad FROM producto_almacen WHERE producto_id = ? AND almacen_id = ? FOR UPDATE");
         $restar = $pdo->prepare("UPDATE producto_almacen SET cantidad = cantidad - ? WHERE producto_id = ? AND almacen_id = ?");
-        $borrar = $pdo->prepare("DELETE FROM producto_almacen WHERE producto_id = ? AND almacen_id = ?");
         $sumar = $pdo->prepare("
             INSERT INTO producto_almacen (producto_id, almacen_id, cantidad) VALUES (?, ?, ?)
             ON DUPLICATE KEY UPDATE cantidad = cantidad + ?
@@ -268,19 +352,19 @@ elseif ($resource === 'productos') {
                 $pdo->rollBack();
                 responderError(400, 'Hay un movimiento no válido.');
             }
+            if (!puedeUsarAlmacen($actual, $desde) || !puedeUsarAlmacen($actual, $hacia)) {
+                $pdo->rollBack();
+                responderError(403, 'Solo puedes mover stock entre tus almacenes.');
+            }
 
             $leer->execute([$producto, $desde]);
-            $actual = (int) $leer->fetchColumn();
-            if ($actual < $cantidad) {
+            $stockActual = (int) $leer->fetchColumn();
+            if ($stockActual < $cantidad) {
                 $pdo->rollBack();
                 responderError(409, 'El stock cambió desde que se calculó la sugerencia. Recarga la página e inténtalo de nuevo.');
             }
-            // Rows with 0 are deleted, since the table only allows positive amounts.
-            if ($actual === $cantidad) {
-                $borrar->execute([$producto, $desde]);
-            } else {
-                $restar->execute([$cantidad, $producto, $desde]);
-            }
+            // The source row is kept even at 0, so the product stays listed in that warehouse.
+            $restar->execute([$cantidad, $producto, $desde]);
             $sumar->execute([$producto, $hacia, $cantidad, $cantidad]);
         }
         $pdo->commit();
