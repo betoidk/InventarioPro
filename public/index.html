@@ -21,7 +21,10 @@
         --text-primary: #1d1d1f;
         --text-secondary: #6e6e73;
         --border-color: rgba(229, 229, 234, 0.5);
-        --header-bg: rgba(255, 255, 255, 0.7);
+        /* Frosted glass for layers that float over content. */
+        --glass-bg: rgba(255, 255, 255, 0.72);
+        --glass-border: rgba(255, 255, 255, 0.6);
+        --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
         --track: #e5e5ea;
         /* Text-safe colors: each one reaches 4.5:1 on this theme's surfaces. */
         --accent-text: #0066cc;
@@ -37,7 +40,9 @@
         --text-primary: #f5f5f7;
         --text-secondary: #a1a1a6;
         --border-color: rgba(255, 255, 255, 0.1);
-        --header-bg: rgba(29, 29, 31, 0.7);
+        --glass-bg: rgba(44, 44, 46, 0.72);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
         --track: #3a3a3c;
         --accent-text: #409cff;
         --danger-text: #ff6961;
@@ -467,16 +472,18 @@
         position: fixed;
         bottom: 2rem;
         right: 2rem;
-        /* Dark enough for white text in both themes. */
-        background: #1e7a34;
-        color: white;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        color: var(--text-primary);
         padding: 1rem 1.5rem;
         border-radius: 12px;
         display: flex;
         align-items: center;
         gap: 0.75rem;
         font-weight: 500;
-        box-shadow: 0 12px 32px rgba(52, 199, 89, 0.3);
+        box-shadow: var(--glass-shadow);
         animation:
           slideIn 300ms cubic-bezier(0.23, 1, 0.32, 1),
           slideOut 300ms cubic-bezier(0.23, 1, 0.32, 1) 3700ms forwards;
@@ -502,6 +509,7 @@
       }
 
       .success-icon {
+        color: var(--success-text);
         width: 20px;
         height: 20px;
         display: inline-flex;
@@ -749,15 +757,23 @@
         display: grid;
         place-items: center;
         padding: 1.5rem 1rem;
+        /* Soft color glow so the glass card has something to show through. */
+        background:
+          radial-gradient(36rem 28rem at 15% 15%, rgba(0, 113, 227, 0.22), transparent 70%),
+          radial-gradient(32rem 28rem at 85% 85%, rgba(52, 199, 89, 0.18), transparent 70%),
+          var(--bg-primary);
       }
 
       .acceso-tarjeta {
         width: 100%;
         max-width: 400px;
         padding: 2rem;
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: 16px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        box-shadow: var(--glass-shadow);
       }
 
       .acceso-marca {
@@ -1140,10 +1156,14 @@
         position: fixed;
         z-index: 1000;
         pointer-events: none;
-        background: var(--text-primary);
-        color: var(--bg-primary);
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow);
+        color: var(--text-primary);
         padding: 0.4rem 0.6rem;
-        border-radius: 6px;
+        border-radius: 8px;
         font-size: 0.85rem;
         white-space: nowrap;
       }
@@ -1420,6 +1440,18 @@
 
         .almacen-card {
           padding: 1rem;
+        }
+      }
+      /* System setting "reduce transparency": every glass layer turns solid. */
+      @media (prefers-reduced-transparency: reduce) {
+        [data-theme] .header,
+        [data-theme] .form-section,
+        [data-theme] .success-toast,
+        [data-theme] .chart-tip,
+        [data-theme] .acceso-tarjeta {
+          background: var(--bg-primary);
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
         }
       }
     </style>
