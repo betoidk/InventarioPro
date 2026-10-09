@@ -121,6 +121,37 @@ function guardarUbicaciones(PDO $pdo, int $productoId, array $ubicaciones, bool 
     ")->execute([$productoId, $productoId]);
 }
 
+// Readable snapshots for the audit log, so an edit can be logged as "field: before → after".
+function fotoProducto(PDO $pdo, int $id): array
+{
+    $stmt = $pdo->prepare("
+        SELECT p.nombre, p.sku, c.nombre AS categoria, p.precio_compra, p.precio_unitario, p.estado, p.cantidad
+        FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id WHERE p.id = ?
+    ");
+    $stmt->execute([$id]);
+    $foto = $stmt->fetch() ?: [];
+    foreach (ubicacionesPorProducto($pdo, $id)[$id] ?? [] as $u) {
+        $foto['stock en ' . $u['nombre']] = $u['cantidad'];
+    }
+    return $foto;
+}
+
+function fotoCategoria(PDO $pdo, int $id): array
+{
+    $stmt = $pdo->prepare("SELECT nombre, descripcion, icono, color_hex FROM categorias WHERE id = ?");
+    $stmt->execute([$id]);
+    return $stmt->fetch() ?: [];
+}
+
+function fotoAlmacenes(PDO $pdo): array
+{
+    $foto = [];
+    foreach ($pdo->query("SELECT nombre, capacidad FROM almacenes ORDER BY id") as $a) {
+        $foto[$a['nombre']] = $a['capacidad'] . ' cajas';
+    }
+    return $foto;
+}
+
 function exigirAlmacenesAsignados(array $usuario): void
 {
     if (!esAdmin($usuario) && !$usuario['almacenes']) {
@@ -149,6 +180,7 @@ if ($resource === 'categorias') {
             responderError(400, 'El nombre es requerido', 'nombre');
         }
 
+        $pdo->beginTransaction();
         $stmt = $pdo->prepare("INSERT INTO categorias (nombre, descripcion, icono, color_hex) VALUES (?, ?, ?, ?)");
         $stmt->execute([
             $data['nombre'],
@@ -156,15 +188,29 @@ if ($resource === 'categorias') {
             $data['icono'] ?? null,
             $data['color_hex'] ?? null
         ]);
-        echo json_encode(['id' => $pdo->lastInsertId(), 'mensaje' => 'Categoría creada']);
+        $nuevoId = (int) $pdo->lastInsertId();
+        registrar($pdo, $actual, 'categorias', "Creó la categoría «{$data['nombre']}»");
+        $pdo->commit();
+        echo json_encode(['id' => $nuevoId, 'mensaje' => 'Categoría creada']);
     } elseif ($method === 'PUT' && $id) {
         $data = json_decode(file_get_contents('php://input'), true);
+        $pdo->beginTransaction();
+        $antes = fotoCategoria($pdo, (int) $id);
         $stmt = $pdo->prepare("UPDATE categorias SET nombre=?, descripcion=?, icono=?, color_hex=? WHERE id=?");
         $stmt->execute([$data['nombre'], $data['descripcion'] ?? null, $data['icono'] ?? null, $data['color_hex'] ?? null, $id]);
+        $despues = fotoCategoria($pdo, (int) $id);
+        registrar($pdo, $actual, 'categorias', "Editó la categoría «{$despues['nombre']}»" . describirCambios($antes, $despues));
+        $pdo->commit();
         echo json_encode(['mensaje' => 'Categoría actualizada']);
     } elseif ($method === 'DELETE' && $id) {
+        $pdo->beginTransaction();
+        $antes = fotoCategoria($pdo, (int) $id);
         $stmt = $pdo->prepare("DELETE FROM categorias WHERE id=?");
         $stmt->execute([$id]);
+        if ($antes) {
+            registrar($pdo, $actual, 'categorias', "Borró la categoría «{$antes['nombre']}»");
+        }
+        $pdo->commit();
         echo json_encode(['mensaje' => 'Categoría eliminada']);
     }
 }
@@ -230,6 +276,8 @@ elseif ($resource === 'productos') {
         if ($ubicaciones !== null) {
             guardarUbicaciones($pdo, $nuevoId, $ubicaciones, !esAdmin($actual));
         }
+        $nuevo = fotoProducto($pdo, $nuevoId);
+        registrar($pdo, $actual, 'inventario', "Creó el producto «{$nuevo['nombre']}» ({$nuevo['sku']}) con {$nuevo['cantidad']} unidades");
         $pdo->commit();
         echo json_encode(['id' => $nuevoId, 'mensaje' => 'Producto creado']);
     } elseif ($method === 'PUT' && $id) {
@@ -239,6 +287,7 @@ elseif ($resource === 'productos') {
         $ubicaciones = leerUbicaciones($data, $actual);
 
         $pdo->beginTransaction();
+        $antes = fotoProducto($pdo, (int) $id);
         $stmt = $pdo->prepare("
             UPDATE productos
             SET nombre=?, descripcion=?, sku=?, categoria_id=?, precio_unitario=?, precio_compra=?, estado=?
@@ -259,6 +308,8 @@ elseif ($resource === 'productos') {
         } elseif (esAdmin($actual)) {
             $pdo->prepare("UPDATE productos SET cantidad = ? WHERE id = ?")->execute([$data['cantidad'] ?? 0, $id]);
         }
+        $despues = fotoProducto($pdo, (int) $id);
+        registrar($pdo, $actual, 'inventario', "Editó el producto «{$despues['nombre']}» ({$despues['sku']})" . describirCambios($antes, $despues));
         $pdo->commit();
         echo json_encode(['mensaje' => 'Producto actualizado']);
     } elseif ($method === 'DELETE' && $id) {
@@ -269,8 +320,12 @@ elseif ($resource === 'productos') {
                 responderError(403, 'Este producto también está en almacenes que no tienes asignados. Pídele al administrador que lo borre.');
             }
         }
+        $pdo->beginTransaction();
+        $antes = fotoProducto($pdo, (int) $id);
         $stmt = $pdo->prepare("DELETE FROM productos WHERE id=?");
         $stmt->execute([$id]);
+        registrar($pdo, $actual, 'inventario', "Borró el producto «{$antes['nombre']}» ({$antes['sku']}), que tenía {$antes['cantidad']} unidades");
+        $pdo->commit();
         echo json_encode(['mensaje' => 'Producto eliminado']);
     }
 } elseif ($resource === 'almacenes') {
@@ -308,6 +363,7 @@ elseif ($resource === 'productos') {
         }
 
         $pdo->beginTransaction();
+        $antes = fotoAlmacenes($pdo);
         $actualizar = $pdo->prepare("UPDATE almacenes SET nombre = ?, capacidad = ? WHERE id = ?");
         $insertar = $pdo->prepare("INSERT INTO almacenes (nombre, capacidad) VALUES (?, ?)");
         $conservar = [];
@@ -323,6 +379,7 @@ elseif ($resource === 'productos') {
         // Removing a warehouse that still holds stock fails on the foreign key (error 1451).
         $marcadores = implode(',', array_fill(0, count($conservar), '?'));
         $pdo->prepare("DELETE FROM almacenes WHERE id NOT IN ($marcadores)")->execute($conservar);
+        registrar($pdo, $actual, 'almacenes', 'Cambió los almacenes' . describirCambios($antes, fotoAlmacenes($pdo)));
         $pdo->commit();
         echo json_encode(['mensaje' => 'Almacenes guardados']);
     }
@@ -343,6 +400,9 @@ elseif ($resource === 'productos') {
             ON DUPLICATE KEY UPDATE cantidad = cantidad + ?
         ");
 
+        $nombreAlmacen = $pdo->query("SELECT id, nombre FROM almacenes")->fetchAll(PDO::FETCH_KEY_PAIR);
+        $leerProducto = $pdo->prepare("SELECT nombre FROM productos WHERE id = ?");
+        $resumen = [];
         foreach ($lista as $m) {
             $producto = filter_var($m['producto_id'] ?? null, FILTER_VALIDATE_INT);
             $desde = filter_var($m['desde_id'] ?? null, FILTER_VALIDATE_INT);
@@ -366,10 +426,18 @@ elseif ($resource === 'productos') {
             // The source row is kept even at 0, so the product stays listed in that warehouse.
             $restar->execute([$cantidad, $producto, $desde]);
             $sumar->execute([$producto, $hacia, $cantidad, $cantidad]);
+            $leerProducto->execute([$producto]);
+            $resumen[] = "$cantidad de «{$leerProducto->fetchColumn()}» de {$nombreAlmacen[$desde]} a {$nombreAlmacen[$hacia]}";
         }
+        registrar($pdo, $actual, 'inventario', 'Movió stock: ' . implode('; ', $resumen));
         $pdo->commit();
         echo json_encode(['mensaje' => 'Stock redistribuido']);
     }
+} elseif ($resource === 'auditoria' && $method === 'GET') {
+    requerirAdmin($actual);
+    // ponytail: latest 500 entries, filtered in the browser; add server paging if the log outgrows that.
+    $stmt = $pdo->query("SELECT id, fecha, usuario, area, detalle, ip FROM auditoria ORDER BY id DESC LIMIT 500");
+    echo json_encode($stmt->fetchAll());
 } else {
     http_response_code(404);
     echo json_encode(['error' => 'Recurso no encontrado']);

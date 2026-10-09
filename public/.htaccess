@@ -14,9 +14,9 @@
     RewriteRule ^(.*)$ src/public/index.html [L]
 </IfModule>
 
-# Revalidar el HTML en cada carga para que nunca quede una versión vieja en caché
+# Revalidar el HTML y los iconos en cada carga para que nunca quede una versión vieja en caché
 <IfModule mod_headers.c>
-    <FilesMatch "\.html$">
+    <FilesMatch "\.(html|svg)$">
         Header set Cache-Control "no-cache"
     </FilesMatch>
 </IfModule>

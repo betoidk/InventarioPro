@@ -2,7 +2,7 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>ORDINUM</title>
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
     <!-- Runs before first paint so a dark system never flashes the light theme. -->
@@ -139,14 +139,16 @@
 
       .nav-tabs {
         display: flex;
-        gap: 4rem;
-        margin-bottom: 3rem;
-        margin-top: 2rem;
+        gap: 2.5rem;
+        margin: 0.5rem 0;
         border-bottom: 1px solid var(--border-color);
       }
 
       .nav-tab {
-        padding: 1.25rem 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem 0;
         border: none;
         background: none;
         cursor: pointer;
@@ -156,6 +158,11 @@
         transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         font-weight: 500;
         position: relative;
+      }
+
+      .nav-tab .icon {
+        width: 1.15rem;
+        height: 1.15rem;
       }
 
       .nav-tab:hover {
@@ -366,6 +373,46 @@
         background: var(--bg-primary);
       }
 
+      /* Eye button inside password fields. */
+      .campo-password {
+        position: relative;
+      }
+
+      .campo-password input {
+        padding-right: 3.25rem;
+      }
+
+      .ver-password {
+        position: absolute;
+        top: 50%;
+        right: 0.25rem;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: 8px;
+        background: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+      }
+
+      .ver-password:hover {
+        color: var(--text-primary);
+      }
+
+      .ver-password .icon {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+
+      /* Edge draws its own eye; ours works in every browser, so hide the duplicate. */
+      input::-ms-reveal {
+        display: none;
+      }
+
       input:focus,
       select:focus,
       textarea:focus {
@@ -573,19 +620,55 @@
         }
       }
 
-      /* DASHBOARD MÓVIL */
-      @media (max-width: 768px) {
+      .productos-layout {
+        display: flex;
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+
+      /* min-width: 0 lets the table column shrink; past that the table scrolls in its own box, never the page. */
+      .productos-tabla {
+        flex: 1;
+        min-width: 0;
+      }
+
+      @media (min-width: 769px) {
+        .productos-tabla {
+          overflow-x: auto;
+        }
+      }
+
+      /* Tighter cells so the eight columns fit beside the sidebar (the container tops out at 1300px). */
+      @media (min-width: 769px) {
+        #productos-table th,
+        #productos-table td {
+          padding-left: 0.75rem;
+          padding-right: 0.75rem;
+        }
+      }
+
+      .dash-stats {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      /* Below ~1240px the table (~820px) plus the 320px sidebar do not fit: the dashboard moves on top, stats in a row. */
+      @media (max-width: 1240px) {
+        .productos-layout {
+          flex-direction: column;
+        }
         #dashboard-stock {
           width: 100% !important;
           position: static !important;
-          margin-bottom: 2rem;
           order: -1;
         }
-        #productos-table {
-          margin-top: 0 !important;
+        .dash-stats {
+          flex-direction: row;
+          flex-wrap: wrap;
         }
-        #productos > div {
-          flex-direction: column !important;
+        .dash-stats > div {
+          flex: 1 1 9rem;
         }
       }
 
@@ -860,6 +943,38 @@
       .estado-usuario.baja {
         color: var(--text-secondary);
         background: var(--track);
+      }
+
+      .filtros-actividad {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin: 1.25rem 0 1rem;
+      }
+
+      .filtros-actividad .form-group {
+        flex: 1 1 14rem;
+        margin-bottom: 0;
+      }
+
+      .filtros-actividad .form-group:last-child {
+        flex: 0 1 12rem;
+      }
+
+      #actividad-table td:first-child {
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Edits list every change, so the detail wraps instead of running off the card. */
+      #actividad-table td:last-child {
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+
+      /* Failed logins and similar warnings stand out in the log. */
+      .actividad-alerta {
+        color: var(--danger-text);
       }
 
       td:last-child .btn.btn-texto {
@@ -1287,16 +1402,48 @@
           margin-bottom: 1rem;
         }
 
+        /* iOS-style tab bar: every section one thumb away, nothing hidden off-screen. */
         .nav-tabs {
-          gap: 1.25rem;
-          margin: 0.5rem 0 1rem;
-          overflow-x: auto;
-          scrollbar-width: none;
+          position: fixed;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          z-index: 10;
+          display: grid;
+          grid-auto-flow: column;
+          grid-auto-columns: 1fr;
+          gap: 0;
+          margin: 0;
+          padding: 0.25rem 0.5rem calc(0.25rem + env(safe-area-inset-bottom));
+          background: var(--glass-bg);
+          backdrop-filter: blur(20px) saturate(180%);
+          -webkit-backdrop-filter: blur(20px) saturate(180%);
+          border-top: 1px solid var(--border-color);
+          border-bottom: none;
         }
 
         .nav-tab {
-          padding: 0.875rem 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.2rem;
+          min-height: 3.25rem;
+          padding: 0.375rem 0 0.25rem;
+          border-bottom: none;
+          font-size: 0.6875rem;
+          font-weight: 600;
           white-space: nowrap;
+        }
+
+        .nav-tab .icon {
+          display: block;
+          width: 1.5rem;
+          height: 1.5rem;
+        }
+
+        /* Room for the tab bar, so the last row is never hidden behind it. */
+        #app {
+          padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
         }
 
         .content {
@@ -1310,7 +1457,7 @@
         .success-toast {
           left: 1rem;
           right: 1rem;
-          bottom: 1rem;
+          bottom: calc(4.75rem + env(safe-area-inset-bottom));
         }
 
         /* Tables become one card per row. */
@@ -1392,6 +1539,11 @@
           display: none;
         }
 
+        /* The activity log ends in text, not buttons: read it left to right. */
+        #actividad-table td:last-child {
+          display: block;
+        }
+
         tbody td:last-child .btn {
           width: 44px;
           height: 44px;
@@ -1450,7 +1602,8 @@
         [data-theme] .form-section,
         [data-theme] .success-toast,
         [data-theme] .chart-tip,
-        [data-theme] .acceso-tarjeta {
+        [data-theme] .acceso-tarjeta,
+        [data-theme] .nav-tabs {
           background: var(--bg-primary);
           backdrop-filter: none;
           -webkit-backdrop-filter: none;
@@ -1558,7 +1711,7 @@
           <div class="header-acciones">
             <span class="usuario-actual">
               <svg class="icon" aria-hidden="true">
-                <use href="assets/icons.svg#i-user"></use>
+                <use href="assets/icons.svg?v=4#i-user"></use>
               </svg>
               <span id="usuario-nombre"></span>
             </span>
@@ -1570,7 +1723,7 @@
               aria-label="Cambiar tema"
             >
               <svg class="icon" aria-hidden="true">
-                <use href="assets/icons.svg#i-sun"></use>
+                <use href="assets/icons.svg?v=4#i-sun"></use>
               </svg>
             </button>
             <button
@@ -1581,7 +1734,7 @@
               aria-label="Cerrar sesión"
             >
               <svg class="icon" aria-hidden="true">
-                <use href="assets/icons.svg#i-logout"></use>
+                <use href="assets/icons.svg?v=4#i-logout"></use>
               </svg>
             </button>
           </div>
@@ -1593,16 +1746,24 @@
       <nav aria-label="Secciones">
         <div class="nav-tabs" role="tablist" onkeydown="moverEntrePestanas(event)">
           <button class="nav-tab active" role="tab" id="tab-productos" aria-selected="true" aria-controls="productos" onclick="showTab('productos')">
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=4#i-box"></use></svg>
             Productos
           </button>
           <button class="nav-tab" role="tab" id="tab-categorias" aria-selected="false" aria-controls="categorias" tabindex="-1" onclick="showTab('categorias')">
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=4#i-tag-price"></use></svg>
             Categorías
           </button>
           <button class="nav-tab" role="tab" id="tab-almacen" aria-selected="false" aria-controls="almacen" tabindex="-1" onclick="showTab('almacen')">
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=4#i-warehouse"></use></svg>
             Almacén
           </button>
           <button class="nav-tab solo-admin" role="tab" id="tab-usuarios" aria-selected="false" aria-controls="usuarios" tabindex="-1" onclick="showTab('usuarios')">
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=4#i-users"></use></svg>
             Usuarios
+          </button>
+          <button class="nav-tab solo-admin" role="tab" id="tab-actividad" aria-selected="false" aria-controls="actividad" tabindex="-1" onclick="showTab('actividad')">
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=4#i-history"></use></svg>
+            Actividad
           </button>
         </div>
       </nav>
@@ -1612,7 +1773,7 @@
         <h2>Productos</h2>
         <button class="btn btn-primary" id="btn-nuevo-producto" onclick="showForm('producto')">
           <svg class="icon" aria-hidden="true">
-            <use href="assets/icons.svg#i-plus"></use>
+            <use href="assets/icons.svg?v=4#i-plus"></use>
           </svg>
           Nuevo Producto
         </button>
@@ -1644,7 +1805,7 @@
             "
           >
             <svg class="icon" aria-hidden="true">
-              <use href="assets/icons.svg#i-x"></use>
+              <use href="assets/icons.svg?v=4#i-x"></use>
             </svg>
           </button>
           <h3>Agregar Producto</h3>
@@ -1690,8 +1851,8 @@
             <button class="btn btn-primary" type="submit">Guardar</button>
           </form>
         </div>
-        <div style="display: flex; gap: 2rem; margin-top: 2rem">
-          <div style="flex: 1">
+        <div class="productos-layout">
+          <div class="productos-tabla">
             <table id="productos-table">
               <thead>
                 <tr>
@@ -1723,7 +1884,7 @@
             <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem">
               Dashboard Stock
             </h3>
-            <div style="display: flex; flex-direction: column; gap: 1rem">
+            <div class="dash-stats">
               <div
                 style="
                   padding: 1rem;
@@ -1822,7 +1983,7 @@
         <h2>Categorías</h2>
         <button class="btn btn-primary solo-admin" id="btn-nuevo-categoria" onclick="showForm('categoria')">
           <svg class="icon" aria-hidden="true">
-            <use href="assets/icons.svg#i-plus"></use>
+            <use href="assets/icons.svg?v=4#i-plus"></use>
           </svg>
           Nueva Categoría
         </button>
@@ -1854,7 +2015,7 @@
             "
           >
             <svg class="icon" aria-hidden="true">
-              <use href="assets/icons.svg#i-x"></use>
+              <use href="assets/icons.svg?v=4#i-x"></use>
             </svg>
           </button>
           <h3>Agregar Categoría</h3>
@@ -1927,7 +2088,7 @@
               onclick="agregarFilaAlmacen()"
             >
               <svg class="icon" aria-hidden="true">
-                <use href="assets/icons.svg#i-plus"></use>
+                <use href="assets/icons.svg?v=4#i-plus"></use>
               </svg>
               Agregar almacén
             </button>
@@ -1995,7 +2156,7 @@
         <h2>Usuarios</h2>
         <button class="btn btn-primary" id="btn-nuevo-usuario" onclick="showForm('usuario')">
           <svg class="icon" aria-hidden="true">
-            <use href="assets/icons.svg#i-plus"></use>
+            <use href="assets/icons.svg?v=4#i-plus"></use>
           </svg>
           Nuevo usuario
         </button>
@@ -2026,7 +2187,7 @@
             "
           >
             <svg class="icon" aria-hidden="true">
-              <use href="assets/icons.svg#i-x"></use>
+              <use href="assets/icons.svg?v=4#i-x"></use>
             </svg>
           </button>
           <h3>Nuevo usuario</h3>
@@ -2072,6 +2233,40 @@
               <th>Almacenes</th>
               <th>Estado</th>
               <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <!-- ACTIVIDAD (admin): audit log, read-only -->
+      <div id="actividad" class="content solo-admin" role="tabpanel" aria-labelledby="tab-actividad">
+        <h2>Actividad</h2>
+        <p class="ayuda">Quién entró al sistema y qué cambió. Se muestran los últimos 500 movimientos.</p>
+        <div class="filtros-actividad">
+          <div class="form-group">
+            <label for="act-buscar">Buscar</label>
+            <input type="search" id="act-buscar" placeholder="Usuario, producto, acción…" oninput="pintarActividad()" />
+          </div>
+          <div class="form-group">
+            <label for="act-area">Área</label>
+            <select id="act-area" onchange="pintarActividad()">
+              <option value="">Todas</option>
+              <option value="sesion">Sesiones</option>
+              <option value="inventario">Inventario</option>
+              <option value="categorias">Categorías</option>
+              <option value="almacenes">Almacenes</option>
+              <option value="usuarios">Usuarios</option>
+            </select>
+          </div>
+        </div>
+        <table id="actividad-table">
+          <thead>
+            <tr>
+              <th>Fecha y hora</th>
+              <th>Usuario</th>
+              <th>Área</th>
+              <th>Qué hizo</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -2134,7 +2329,8 @@
           .forEach((el) => observer.observe(el));
       }
 
-      const ICON_SPRITE = "assets/icons.svg";
+      // Bump ?v= (here and in the HTML) when icons.svg changes, so phones drop their cached copy.
+      const ICON_SPRITE = "assets/icons.svg?v=4";
       const DEFAULT_CAT_ICON = "box";
       const DEFAULT_CAT_COLOR = "#0071E3";
 
@@ -2278,6 +2474,7 @@
         if (tab === "categorias") cargarCategorias();
         if (tab === "almacen") cargarAlmacen();
         if (tab === "usuarios") cargarUsuarios();
+        if (tab === "actividad") cargarActividad();
       }
 
       // Tab pattern: arrows, Home and End move between tabs; Tab leaves the tab list.
@@ -3274,6 +3471,48 @@
       let usuariosLista = [];
       let editingUsuarioId = null;
 
+      let actividad = [];
+      const AREAS = { sesion: "Sesión", inventario: "Inventario", categorias: "Categorías", almacenes: "Almacenes", usuarios: "Usuarios" };
+
+      async function cargarActividad() {
+        try {
+          actividad = await api(`${API}?resource=auditoria`);
+          pintarActividad();
+        } catch (e) {
+          alert(e.message);
+        }
+      }
+
+      function pintarActividad() {
+        const texto = document.getElementById("act-buscar").value.trim().toLowerCase();
+        const area = document.getElementById("act-area").value;
+        const filas = actividad.filter(
+          (a) =>
+            (!area || a.area === area) &&
+            (!texto || `${a.usuario} ${a.detalle}`.toLowerCase().includes(texto)),
+        );
+        const tbody = document.querySelector("#actividad-table tbody");
+        tbody.innerHTML = filas.length
+          ? filas
+              .map((a) => {
+                // MySQL sends local server time as "YYYY-MM-DD HH:MM:SS".
+                const fecha = new Date(a.fecha.replace(" ", "T")).toLocaleString("es-MX", {
+                  dateStyle: "short",
+                  timeStyle: "medium",
+                });
+                const alerta = /fallido|dado de baja|bloqueado/i.test(a.detalle) ? ' class="actividad-alerta"' : "";
+                return `<tr>
+                  <td data-label="Fecha y hora">${fecha}</td>
+                  <td data-label="Usuario">${escapeHtml(a.usuario)}</td>
+                  <td data-label="Área"><span class="estado-usuario baja">${AREAS[a.area] ?? escapeHtml(a.area)}</span></td>
+                  <td data-label="Qué hizo"${alerta}>${escapeHtml(a.detalle)}</td>
+                </tr>`;
+              })
+              .join("")
+          : `<tr><td colspan="4">${actividad.length ? "Nada coincide con el filtro." : "Todavía no hay actividad registrada."}</td></tr>`;
+        rolesDeTabla(tbody.closest("table"));
+      }
+
       async function cargarUsuarios() {
         try {
           usuariosLista = await api(`${API}?resource=usuarios`);
@@ -3396,7 +3635,37 @@
         }
       }
 
+      function verPassword(boton, visible) {
+        boton.previousElementSibling.type = visible ? "text" : "password";
+        boton.setAttribute("aria-pressed", visible);
+        boton.innerHTML = icon(visible ? "eye-off" : "eye");
+      }
+
+      // Every password field gets an eye button that shows or hides what was typed.
+      function prepararCamposPassword() {
+        document.querySelectorAll('input[type="password"]').forEach((input) => {
+          const caja = document.createElement("div");
+          caja.className = "campo-password";
+          input.replaceWith(caja);
+          const boton = document.createElement("button");
+          boton.type = "button";
+          boton.className = "ver-password";
+          boton.setAttribute("aria-label", "Mostrar contraseña");
+          boton.onclick = () => {
+            verPassword(boton, input.type === "password");
+            input.focus();
+          };
+          caja.append(input, boton);
+          verPassword(boton, false);
+        });
+        // Hidden again on submit (so password managers still offer to save it) and on reset.
+        const ocultar = (e) => e.target.querySelectorAll(".ver-password").forEach((b) => verPassword(b, false));
+        document.addEventListener("submit", ocultar, true);
+        document.addEventListener("reset", ocultar, true);
+      }
+
       // Inicializar
+      prepararCamposPassword();
       initTheme();
       setupIconSelector();
       setupChartTip();
