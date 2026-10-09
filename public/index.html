@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gestor de Inventarios</title>
+    <title>ORDINUM</title>
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
     <!-- Runs before first paint so a dark system never flashes the light theme. -->
     <script>
       // "theme" was saved on every toggle by the old logic and would pin the app to one mode.
@@ -620,10 +621,11 @@
         margin-bottom: 0;
       }
 
-      .brand .icon {
-        width: 1.05em;
-        height: 1.05em;
-        color: #0071e3;
+      /* Wordmark strokes use currentColor, so the logo follows the theme. */
+      .brand .logo {
+        height: 1.75rem;
+        width: auto;
+        display: block;
       }
 
       .theme-toggle {
@@ -1457,14 +1459,46 @@
     </style>
   </head>
   <body>
+    <!-- ORDINUM logo, defined once. Not display:none: Chrome drops gradients from hidden defs. -->
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <linearGradient id="ordinum-g" x1="0" y1="0" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#0071E3" />
+          <stop offset="1" stop-color="#34C759" />
+        </linearGradient>
+        <symbol id="logo-ordinum" viewBox="0 0 403 60">
+          <g fill="url(#ordinum-g)">
+            <rect x="0" y="0" width="16" height="16" rx="4" />
+            <rect x="22" y="0" width="16" height="16" rx="4" />
+            <rect x="44" y="0" width="16" height="16" rx="4" />
+            <rect x="0" y="22" width="16" height="16" rx="4" />
+            <rect x="44" y="22" width="16" height="16" rx="4" />
+            <rect x="0" y="44" width="16" height="16" rx="4" />
+            <rect x="22" y="44" width="16" height="16" rx="4" />
+            <rect x="44" y="44" width="16" height="16" rx="4" />
+          </g>
+          <g transform="translate(84 0)" fill="none" stroke="currentColor" stroke-width="8">
+            <circle cx="20" cy="40" r="16" />
+            <path d="M55 60V20M55 40a16 16 0 0 1 16-16" />
+            <circle cx="99" cy="40" r="16" />
+            <path d="M115 0V60" />
+            <path d="M135 20V60" />
+            <circle cx="135" cy="7" r="4.5" fill="currentColor" stroke="none" />
+            <path d="M155 60V20M155 40a16 16 0 0 1 32 0V60" />
+            <path d="M207 20V40a16 16 0 0 0 32 0M239 20V60" />
+            <path d="M259 60V20M259 38a14 14 0 0 1 28 0V60M287 38a14 14 0 0 1 28 0V60" />
+          </g>
+        </symbol>
+      </defs>
+    </svg>
+
     <!-- ACCESO: login, or the first-time admin setup when there are no users yet -->
     <main id="acceso" class="acceso" hidden>
       <div class="acceso-tarjeta">
         <p class="brand acceso-marca">
-          <svg class="icon" aria-hidden="true">
-            <use href="assets/icons.svg#i-package"></use>
+          <svg class="logo" viewBox="0 0 403 60" role="img" aria-label="ORDINUM">
+            <use href="#logo-ordinum"></use>
           </svg>
-          Gestor de Inventarios
         </p>
 
         <form id="form-login" onsubmit="iniciarSesion(event)" hidden>
@@ -1517,10 +1551,9 @@
       <div class="container">
         <div class="header-content">
           <h1 class="brand">
-            <svg class="icon" aria-hidden="true">
-              <use href="assets/icons.svg#i-package"></use>
+            <svg class="logo" viewBox="0 0 403 60" role="img" aria-label="ORDINUM">
+              <use href="#logo-ordinum"></use>
             </svg>
-            Gestor de Inventarios
           </h1>
           <div class="header-acciones">
             <span class="usuario-actual">
