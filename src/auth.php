@@ -1,5 +1,5 @@
 <?php
-// Session and permission helpers shared by every API controller.
+// Session, permission and audit helpers shared by every API controller.
 
 function responderError(int $codigo, string $mensaje, ?string $campo = null): void
 {
@@ -81,6 +81,38 @@ function cerrarSesion(): void
         'samesite' => $p['samesite'],
     ]);
     session_destroy();
+}
+
+// Audit log. Append-only: nothing in the app edits or deletes these rows.
+// Called inside the change's transaction, so a rolled-back change leaves no entry.
+// $usuario is the acting user; $nombre covers failed logins, where there is no user yet.
+function registrar(PDO $pdo, ?array $usuario, string $area, string $detalle, string $nombre = ''): void
+{
+    $pdo->prepare("INSERT INTO auditoria (usuario_id, usuario, area, detalle, ip) VALUES (?, ?, ?, ?, ?)")->execute([
+        $usuario['id'] ?? null,
+        mb_substr($usuario['usuario'] ?? $nombre, 0, 50),
+        $area,
+        mb_substr($detalle, 0, 1000),
+        $_SERVER['REMOTE_ADDR'] ?? null,
+    ]);
+}
+
+// "campo: antes → después" for every key whose value changed between two snapshots.
+function describirCambios(array $antes, array $despues): string
+{
+    $etiquetas = [
+        'sku' => 'SKU', 'categoria' => 'categoría', 'descripcion' => 'descripción', 'color_hex' => 'color',
+        'precio_compra' => 'precio de compra', 'precio_unitario' => 'precio de venta', 'cantidad' => 'cantidad total',
+    ];
+    $partes = [];
+    foreach (array_keys($antes + $despues) as $campo) {
+        $a = $antes[$campo] ?? null;
+        $d = $despues[$campo] ?? null;
+        if ((string) $a !== (string) $d) {
+            $partes[] = ($etiquetas[$campo] ?? $campo) . ': ' . ($a ?? '—') . ' → ' . ($d ?? '—');
+        }
+    }
+    return $partes ? ': ' . implode('; ', $partes) : ' (sin cambios)';
 }
 
 // Validates the user fields present in $data. Returns only the ones sent.

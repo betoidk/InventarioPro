@@ -31,6 +31,21 @@ function guardarAlmacenesUsuario(PDO $pdo, int $usuarioId, string $rol, array $a
     }
 }
 
+// Readable snapshot of a user for the audit log.
+function fotoUsuario(PDO $pdo, int $id): array
+{
+    $stmt = $pdo->prepare("SELECT usuario, nombre, rol, IF(activo, 'activo', 'dado de baja') AS estado FROM usuarios WHERE id = ?");
+    $stmt->execute([$id]);
+    $foto = $stmt->fetch();
+    $stmt = $pdo->prepare("
+        SELECT GROUP_CONCAT(a.nombre ORDER BY a.id SEPARATOR ', ')
+        FROM usuario_almacen ua JOIN almacenes a ON a.id = ua.almacen_id WHERE ua.usuario_id = ?
+    ");
+    $stmt->execute([$id]);
+    $foto['almacenes'] = $foto['rol'] === 'admin' ? 'todos' : ($stmt->fetchColumn() ?: 'ninguno');
+    return $foto;
+}
+
 function leerRol(array $data): string
 {
     $rol = $data['rol'] ?? 'usuario';
@@ -62,7 +77,10 @@ if ($resource === 'sesion') {
         }
         // Unknown users still pay for a hash, so response time does not reveal which names exist.
         $hash = $fila['password_hash'] ?? password_hash('usuario-inexistente', PASSWORD_DEFAULT);
+        // Failed attempts are logged under the name typed, linked to the account when it exists.
+        $intento = $fila ? ['id' => $fila['id'], 'usuario' => $usuario] : null;
         if (!password_verify($password, $hash) || !$fila) {
+            $detalle = 'Intento fallido de inicio de sesión';
             if ($fila) {
                 $intentos = $fila['intentos_fallidos'] + 1;
                 $bloquear = $intentos >= MAX_INTENTOS;
@@ -71,11 +89,18 @@ if ($resource === 'sesion') {
                         bloqueado_hasta = IF(?, NOW() + INTERVAL " . MINUTOS_BLOQUEO . " MINUTE, NULL)
                     WHERE id = ?
                 ")->execute([$bloquear ? 0 : $intentos, $bloquear ? 1 : 0, $fila['id']]);
+                if ($bloquear) {
+                    $detalle .= '; el usuario quedó bloqueado ' . MINUTOS_BLOQUEO . ' minutos';
+                }
+            } else {
+                $detalle .= ' (ese usuario no existe)';
             }
+            registrar($pdo, $intento, 'sesion', $detalle, $usuario);
             responderError(401, 'Usuario o contraseña incorrectos.');
         }
         // Only reached with the right password, so this message reveals nothing new.
         if (!$fila['activo']) {
+            registrar($pdo, $intento, 'sesion', 'Intentó entrar con un usuario dado de baja');
             responderError(403, 'Tu usuario está dado de baja. Habla con el administrador.');
         }
 
@@ -86,8 +111,14 @@ if ($resource === 'sesion') {
                 ->execute([password_hash($password, PASSWORD_DEFAULT), $fila['id']]);
         }
         iniciarSesionComo((int) $fila['id']);
-        echo json_encode(['usuario' => usuarioActual($pdo)]);
+        $yo = usuarioActual($pdo);
+        registrar($pdo, $yo, 'sesion', 'Inició sesión');
+        echo json_encode(['usuario' => $yo]);
     } elseif ($method === 'DELETE') {
+        $yo = usuarioActual($pdo);
+        if ($yo) {
+            registrar($pdo, $yo, 'sesion', 'Cerró sesión');
+        }
         cerrarSesion();
         echo json_encode(['mensaje' => 'Sesión cerrada']);
     }
@@ -104,7 +135,9 @@ if ($resource === 'sesion') {
             responderError(409, 'Ya existe un administrador. Inicia sesión.');
         }
         iniciarSesionComo((int) $pdo->lastInsertId());
-        echo json_encode(['usuario' => usuarioActual($pdo)]);
+        $yo = usuarioActual($pdo);
+        registrar($pdo, $yo, 'usuarios', 'Creó la cuenta de administrador inicial');
+        echo json_encode(['usuario' => $yo]);
     }
 } elseif ($resource === 'usuarios') {
     $actual = requerirSesion($pdo);
@@ -131,6 +164,8 @@ if ($resource === 'sesion') {
             ->execute([$campos['usuario'], $campos['nombre'], $campos['password_hash'], $rol]);
         $nuevoId = (int) $pdo->lastInsertId();
         guardarAlmacenesUsuario($pdo, $nuevoId, $rol, $data['almacenes'] ?? []);
+        $nuevo = fotoUsuario($pdo, $nuevoId);
+        registrar($pdo, $actual, 'usuarios', "Creó el usuario «{$nuevo['usuario']}» (rol: {$nuevo['rol']}; almacenes: {$nuevo['almacenes']})");
         $pdo->commit();
         echo json_encode(['id' => $nuevoId, 'mensaje' => 'Usuario creado']);
     } elseif ($method === 'PUT' && $id) {
@@ -160,6 +195,7 @@ if ($resource === 'sesion') {
         }
 
         $pdo->beginTransaction();
+        $antes = fotoUsuario($pdo, $id);
         if ($campos) {
             $set = implode(', ', array_map(fn ($c) => "$c = ?", array_keys($campos)));
             $pdo->prepare("UPDATE usuarios SET $set WHERE id = ?")->execute([...array_values($campos), $id]);
@@ -168,6 +204,13 @@ if ($resource === 'sesion') {
             $almacenes = $data['almacenes'] ?? almacenesDeUsuario($pdo, $id);
             guardarAlmacenesUsuario($pdo, $id, $campos['rol'] ?? $objetivo['rol'], is_array($almacenes) ? $almacenes : []);
         }
+        $despues = fotoUsuario($pdo, $id);
+        // Only the fact that the password changed is logged, never the password.
+        if (isset($campos['password_hash'])) {
+            $antes['contraseña'] = 'anterior';
+            $despues['contraseña'] = 'nueva';
+        }
+        registrar($pdo, $actual, 'usuarios', "Editó el usuario «{$despues['usuario']}»" . describirCambios($antes, $despues));
         $pdo->commit();
         echo json_encode(['mensaje' => 'Usuario actualizado']);
     }
