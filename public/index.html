@@ -7,12 +7,12 @@
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
     <!-- Runs before first paint so a dark system never flashes the light theme. -->
     <script>
-      // "theme" was saved on every toggle by the old logic and would pin the app to one mode.
+      // The app follows the system appearance only; old saved overrides are dropped.
       localStorage.removeItem("theme");
+      localStorage.removeItem("theme-manual");
       document.documentElement.setAttribute(
         "data-theme",
-        localStorage.getItem("theme-manual") ||
-          (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"),
+        matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
       );
     </script>
     <style>
@@ -27,12 +27,21 @@
         --glass-border: rgba(255, 255, 255, 0.6);
         --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
         --track: #e5e5ea;
+        /* Edge of tables and other surfaces that sit on the page color. */
+        --separator: #e5e5ea;
         /* Text-safe colors: each one reaches 4.5:1 on this theme's surfaces. */
         --accent-text: #0066cc;
         --danger-text: #c4001a;
         --success-text: #1e7a34;
         --info-text: #00639c;
         --focus-ring: #0066cc;
+        /* Brand blue: primary action and selected tab only. */
+        --accent: #0071e3;
+        /* Three radii and two shadows (the float one is --glass-shadow). */
+        --radius-control: 8px;
+        --radius-card: 12px;
+        --radius-pill: 999px;
+        --shadow-rest: 0 1px 3px rgba(0, 0, 0, 0.06);
       }
 
       [data-theme="dark"] {
@@ -45,11 +54,13 @@
         --glass-border: rgba(255, 255, 255, 0.1);
         --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
         --track: #3a3a3c;
+        --separator: #3a3a3c;
         --accent-text: #409cff;
         --danger-text: #ff6961;
         --success-text: #30d158;
         --info-text: #64d2ff;
         --focus-ring: #409cff;
+        --shadow-rest: 0 1px 3px rgba(0, 0, 0, 0.3);
       }
 
       * {
@@ -87,7 +98,7 @@
 
       h2 {
         font-size: 1.6rem;
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
         line-height: 1.25;
         font-weight: 700;
       }
@@ -101,7 +112,7 @@
         position: sticky;
         top: 0;
         z-index: 10;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        box-shadow: var(--shadow-rest);
       }
 
       [data-theme="dark"] .header {
@@ -155,7 +166,9 @@
         font-size: 1rem;
         color: var(--text-secondary);
         border-bottom: 3px solid transparent;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition:
+          color 150ms ease-out,
+          border-color 150ms ease-out;
         font-weight: 500;
         position: relative;
       }
@@ -174,7 +187,7 @@
       }
 
       .nav-tab.active {
-        border-bottom-color: #0071e3;
+        border-bottom-color: var(--accent);
         color: var(--accent-text);
       }
 
@@ -191,45 +204,26 @@
         width: 100%;
         border-collapse: collapse;
         background: var(--bg-primary);
-        border-radius: 12px;
+        border-radius: var(--radius-card);
         overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-        transition:
-          box-shadow 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
-          background 0.3s;
-        border: 1px solid var(--border-color);
-      }
-
-      [data-theme="dark"] table {
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-      }
-
-      table:hover {
+        /* A ring instead of a border: with border-collapse the border would ignore the rounded corners. */
         box-shadow:
-          0 12px 40px rgba(0, 0, 0, 0.12),
-          inset 0 1px 0 rgba(255, 255, 255, 0.5);
-      }
-
-      [data-theme="dark"] table:hover {
-        box-shadow:
-          0 12px 40px rgba(0, 0, 0, 0.4),
-          inset 0 1px 0 rgba(255, 255, 255, 0.1);
+          0 0 0 1px var(--separator),
+          var(--shadow-rest);
+        transition: background 0.3s;
       }
 
       th {
-        background: var(--bg-secondary);
-        padding: 1rem 1.25rem;
+        padding: 0.75rem 1rem;
         text-align: left;
         font-weight: 600;
         color: var(--text-secondary);
         border-bottom: 1px solid var(--border-color);
-        font-size: 0.8rem;
-        letter-spacing: 0.6px;
-        text-transform: uppercase;
+        font-size: 0.8125rem;
       }
 
       td {
-        padding: 1.25rem;
+        padding: 0.75rem 1rem;
         border-bottom: 1px solid var(--border-color);
         color: var(--text-primary);
         font-size: 0.95rem;
@@ -284,7 +278,7 @@
       .btn {
         padding: 0.75rem 1.25rem;
         border: none;
-        border-radius: 10px;
+        border-radius: var(--radius-control);
         cursor: pointer;
         font-size: 0.95rem;
         font-weight: 500;
@@ -293,10 +287,8 @@
         gap: 0.5rem;
         letter-spacing: -0.2px;
         transition:
-          background-color 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
-          box-shadow 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
-          transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
-        will-change: transform;
+          background-color 150ms ease-out,
+          transform 100ms ease-out;
       }
 
       .btn:active {
@@ -304,19 +296,16 @@
       }
 
       .btn-primary {
-        background: #0071e3;
+        background: var(--accent);
         color: white;
       }
 
       .btn-primary:hover {
         background: #0077ed;
-        box-shadow: 0 12px 28px rgba(0, 113, 227, 0.25);
-        transform: translateY(-2px);
       }
 
       .btn-primary:active {
         background: #0062c5;
-        box-shadow: 0 2px 8px rgba(0, 113, 227, 0.2);
       }
 
       .btn-danger {
@@ -338,7 +327,7 @@
         background: var(--bg-secondary);
         color: var(--accent-text);
         padding: 0.6rem;
-        border-radius: 8px;
+        border-radius: var(--radius-control);
       }
 
       .btn-edit:hover {
@@ -363,13 +352,13 @@
         width: 100%;
         padding: 0.875rem;
         border: 1px solid var(--border-color);
-        border-radius: 8px;
+        border-radius: var(--radius-control);
         font-family: inherit;
         font-size: 1rem;
         color: var(--text-primary);
         transition:
-          border-color 200ms ease,
-          box-shadow 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+          border-color 150ms ease-out,
+          box-shadow 150ms ease-out;
         background: var(--bg-primary);
       }
 
@@ -393,7 +382,7 @@
         align-items: center;
         justify-content: center;
         border: none;
-        border-radius: 8px;
+        border-radius: var(--radius-control);
         background: none;
         color: var(--text-secondary);
         cursor: pointer;
@@ -417,9 +406,9 @@
       select:focus,
       textarea:focus {
         outline: none;
-        border-color: #0071e3;
+        border-color: var(--accent);
         box-shadow:
-          0 0 0 8px rgba(0, 113, 227, 0.1),
+          0 0 0 8px color-mix(in srgb, var(--accent) 10%, transparent),
           inset 0 1px 2px rgba(0, 0, 0, 0.02);
       }
 
@@ -434,12 +423,11 @@
         -webkit-backdrop-filter: blur(20px) saturate(180%);
         border: 1px solid rgba(255, 255, 255, 0.6);
         padding: 2.5rem;
-        border-radius: 20px;
+        border-radius: var(--radius-card);
         max-width: 550px;
         box-shadow:
           0 16px 48px rgba(0, 0, 0, 0.08),
           inset 0 1px 0 rgba(255, 255, 255, 0.6);
-        animation: slideUp 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
       }
 
       [data-theme="dark"] .form-section {
@@ -448,17 +436,6 @@
         box-shadow:
           0 16px 48px rgba(0, 0, 0, 0.3),
           inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      }
-
-      @keyframes slideUp {
-        from {
-          opacity: 0;
-          transform: translateY(16px) scale(0.95);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0) scale(1);
-        }
       }
 
       .form-section h3 {
@@ -488,31 +465,15 @@
         display: inline-block;
         width: 32px;
         height: 32px;
-        border-radius: 8px;
+        border-radius: var(--radius-control);
         vertical-align: middle;
         border: 1px solid #e5e5ea;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+        box-shadow: var(--shadow-rest);
       }
 
       .icon-cell {
         font-size: 1.5rem;
-        color: #0071e3;
-      }
-
-      /* TRANSICIONES DE CONTENIDO */
-      tbody tr {
-        animation: fadeInRow 300ms cubic-bezier(0.23, 1, 0.32, 1);
-      }
-
-      @keyframes fadeInRow {
-        from {
-          opacity: 0;
-          transform: translateY(8px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        color: var(--accent);
       }
 
       /* FEEDBACK DE ÉXITO */
@@ -526,7 +487,7 @@
         border: 1px solid var(--glass-border);
         color: var(--text-primary);
         padding: 1rem 1.5rem;
-        border-radius: 12px;
+        border-radius: var(--radius-card);
         display: flex;
         align-items: center;
         gap: 0.75rem;
@@ -582,8 +543,8 @@
       .spinner {
         width: 16px;
         height: 16px;
-        border: 2px solid rgba(0, 113, 227, 0.2);
-        border-top-color: #0071e3;
+        border: 2px solid color-mix(in srgb, var(--accent) 20%, transparent);
+        border-top-color: var(--accent);
         border-radius: 50%;
         animation: spin 600ms linear infinite;
       }
@@ -594,24 +555,8 @@
         }
       }
 
-      /* SCROLL REVEAL */
-      .reveal {
-        opacity: 0;
-        transform: translateY(16px);
-        transition:
-          opacity 500ms cubic-bezier(0.23, 1, 0.32, 1),
-          transform 500ms cubic-bezier(0.23, 1, 0.32, 1);
-      }
-
-      .reveal.visible {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
       @media (prefers-reduced-motion: reduce) {
-        tbody tr,
         .success-toast,
-        .reveal,
         .success-icon {
           animation: none !important;
           transition: none !important;
@@ -647,10 +592,95 @@
         }
       }
 
-      .dash-stats {
+      /* Resumen de stock: one surface; totals and alerts are rows split by hairlines. */
+      #dashboard-stock {
+        width: 320px;
+        background: var(--bg-secondary);
+        padding: 1.25rem 1.5rem;
+        border-radius: var(--radius-card);
+        height: fit-content;
+        position: sticky;
+        top: 100px;
+      }
+
+      #dashboard-stock h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.25rem;
+      }
+
+      #dashboard-stock h4 {
+        font-size: 1rem;
+        margin: 1.25rem 0 0.25rem;
+      }
+
+      .resumen-totales div {
         display: flex;
-        flex-direction: column;
-        gap: 1rem;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .resumen-totales dt {
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+      }
+
+      .resumen-totales dd {
+        font-size: 1.25rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .dato-bajo {
+        color: var(--danger-text);
+      }
+
+      .dato-alto {
+        color: var(--success-text);
+      }
+
+      .alertas {
+        list-style: none;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .alertas li {
+        padding: 0.75rem 0;
+        border-top: 1px solid var(--border-color);
+        font-size: 0.9rem;
+      }
+
+      .alertas li:first-child {
+        border-top: none;
+      }
+
+      .alerta-nombre {
+        font-weight: 600;
+        gap: 0.5rem;
+      }
+
+      .alerta-detalle,
+      .alerta-vacia {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+      }
+
+      .alerta-detalle {
+        margin-top: 0.25rem;
+      }
+
+      .alerta-accion {
+        font-weight: 600;
+      }
+
+      .alerta-accion.bajo {
+        color: var(--danger-text);
+      }
+
+      .alerta-accion.alto {
+        color: var(--success-text);
       }
 
       /* Below ~1240px the table (~820px) plus the 320px sidebar do not fit: the dashboard moves on top, stats in a row. */
@@ -662,13 +692,6 @@
           width: 100% !important;
           position: static !important;
           order: -1;
-        }
-        .dash-stats {
-          flex-direction: row;
-          flex-wrap: wrap;
-        }
-        .dash-stats > div {
-          flex: 1 1 9rem;
         }
       }
 
@@ -718,6 +741,63 @@
         color: var(--text-primary);
       }
 
+      .close-btn {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        background: none;
+        color: var(--text-secondary);
+        cursor: pointer;
+      }
+
+      .sku {
+        background: var(--bg-secondary);
+        padding: 0.25rem 0.5rem;
+        border-radius: var(--radius-control);
+        font-size: 0.85rem;
+      }
+
+      .estado-stock {
+        display: inline-block;
+        padding: 0.3rem 0.75rem;
+        border: 1.5px solid var(--c);
+        border-radius: var(--radius-pill);
+        background: color-mix(in srgb, var(--c) 12%, transparent);
+        color: var(--c);
+        font-size: 0.85rem;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+
+      .vacio {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-secondary);
+      }
+
+      .sin-dato {
+        color: var(--text-secondary);
+      }
+
+      .margen {
+        font-weight: 600;
+      }
+
+      .margen.negativo {
+        color: var(--danger-text);
+      }
+
+      .tabla-separada {
+        margin-top: 1.5rem;
+      }
+
       .theme-toggle .icon,
       .close-btn .icon {
         width: 22px;
@@ -739,7 +819,7 @@
       .cat-tile {
         width: 36px;
         height: 36px;
-        border-radius: 10px;
+        border-radius: var(--radius-control);
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -754,7 +834,7 @@
       .cat-tile.sm {
         width: 28px;
         height: 28px;
-        border-radius: 8px;
+        border-radius: var(--radius-control);
       }
 
       .cat-tile.sm .icon {
@@ -804,7 +884,7 @@
       .form-error {
         margin: 0 0 1rem;
         padding: 0.75rem 1rem;
-        border-radius: 8px;
+        border-radius: var(--radius-control);
         border: 1px solid var(--danger-text);
         background: color-mix(in srgb, var(--danger-text) 10%, transparent);
         color: var(--danger-text);
@@ -871,7 +951,7 @@
         backdrop-filter: blur(20px) saturate(180%);
         -webkit-backdrop-filter: blur(20px) saturate(180%);
         border: 1px solid var(--glass-border);
-        border-radius: 20px;
+        border-radius: var(--radius-card);
         box-shadow: var(--glass-shadow);
       }
 
@@ -937,13 +1017,13 @@
         height: 20px;
         padding: 0;
         flex-shrink: 0;
-        accent-color: #0071e3;
+        accent-color: var(--accent);
       }
 
       .estado-usuario {
         display: inline-block;
         padding: 0.3rem 0.75rem;
-        border-radius: 8px;
+        border-radius: var(--radius-pill);
         font-size: 0.85rem;
         font-weight: 600;
         white-space: nowrap;
@@ -1027,7 +1107,7 @@
       .almacen-card {
         background: var(--bg-secondary);
         border: 1px solid var(--border-color);
-        border-radius: 12px;
+        border-radius: var(--radius-card);
         padding: 1.25rem 1.5rem;
       }
 
@@ -1112,7 +1192,7 @@
       .redistribuir {
         margin-top: 1rem;
         padding: 1rem;
-        border-radius: 10px;
+        border-radius: var(--radius-card);
         border: 1px solid color-mix(in srgb, #ff9500 40%, transparent);
         background: color-mix(in srgb, #ff9500 8%, transparent);
         font-size: 0.9rem;
@@ -1177,12 +1257,14 @@
       }
 
       .ubic {
-        display: flex;
-        flex-direction: column;
         font-size: 0.8rem;
         line-height: 1.4;
         color: var(--text-secondary);
         white-space: nowrap;
+      }
+
+      .ubic summary {
+        cursor: pointer;
       }
 
       .alm-estado {
@@ -1197,7 +1279,7 @@
       .meter {
         display: flex;
         height: 28px;
-        border-radius: 6px;
+        border-radius: var(--radius-pill);
         overflow: hidden;
         background: var(--track);
       }
@@ -1247,7 +1329,7 @@
 
       .cat-bar {
         height: 10px;
-        border-radius: 4px;
+        border-radius: var(--radius-pill);
         background: var(--track);
         overflow: hidden;
       }
@@ -1255,7 +1337,7 @@
       .cat-bar span {
         display: block;
         height: 100%;
-        border-radius: 4px;
+        border-radius: var(--radius-pill);
       }
 
       .cat-pct {
@@ -1294,14 +1376,14 @@
         box-shadow: var(--glass-shadow);
         color: var(--text-primary);
         padding: 0.4rem 0.6rem;
-        border-radius: 8px;
+        border-radius: var(--radius-control);
         font-size: 0.85rem;
         white-space: nowrap;
       }
 
       /* SELECTOR DE ICONOS */
       .icon-grid {
-        --cat-color: #0071e3;
+        --cat-color: #6e6e73;
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
         gap: 0.5rem;
@@ -1314,7 +1396,7 @@
         align-items: center;
         justify-content: center;
         border: 1px solid var(--border-color);
-        border-radius: 10px;
+        border-radius: var(--radius-control);
         background: var(--bg-primary);
         color: var(--text-secondary);
         cursor: pointer;
@@ -1381,7 +1463,7 @@
         width: 80px;
         height: 80px;
         border: none;
-        border-radius: 12px;
+        border-radius: var(--radius-control);
         cursor: pointer;
         transition: transform 200ms ease;
       }
@@ -1475,8 +1557,7 @@
         }
 
         /* Tables become one card per row. */
-        table,
-        table:hover {
+        table {
           border: none;
           border-radius: 0;
           box-shadow: none;
@@ -1507,8 +1588,8 @@
           padding: 1rem;
           background: var(--bg-secondary);
           border: 1px solid var(--border-color);
-          border-radius: 12px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+          border-radius: var(--radius-card);
+          box-shadow: var(--shadow-rest);
         }
 
         td {
@@ -1527,8 +1608,6 @@
           font-size: 0.75rem;
           font-weight: 600;
           color: var(--text-secondary);
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
         }
 
         /* The name cell is the card title, so its label is redundant. */
@@ -1731,17 +1810,6 @@
             </span>
             <button
               class="theme-toggle"
-              id="btn-tema"
-              onclick="toggleTheme()"
-              title="Cambiar tema"
-              aria-label="Cambiar tema"
-            >
-              <svg class="icon" aria-hidden="true">
-                <use href="assets/icons.svg?v=4#i-sun"></use>
-              </svg>
-            </button>
-            <button
-              class="theme-toggle"
               id="btn-salir"
               onclick="cerrarSesionUI()"
               title="Cerrar sesión"
@@ -1789,7 +1857,7 @@
           <svg class="icon" aria-hidden="true">
             <use href="assets/icons.svg?v=4#i-plus"></use>
           </svg>
-          Nuevo Producto
+          Nuevo producto
         </button>
         <div
           id="producto-form"
@@ -1801,28 +1869,12 @@
             onclick="closeForm('producto')"
             class="close-btn"
             aria-label="Cerrar"
-            style="
-              position: absolute;
-              top: 1.5rem;
-              right: 1.5rem;
-              background: none;
-              border: none;
-              font-size: 1.5rem;
-              cursor: pointer;
-              color: var(--text-secondary);
-              padding: 0;
-              width: 44px;
-              height: 44px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            "
           >
             <svg class="icon" aria-hidden="true">
               <use href="assets/icons.svg?v=4#i-x"></use>
             </svg>
           </button>
-          <h3>Agregar Producto</h3>
+          <h3>Agregar producto</h3>
           <form onsubmit="guardarProducto(event)">
             <div class="form-group">
               <label for="prod-nombre">Nombre</label>
@@ -1850,7 +1902,7 @@
               <p class="alm-total" id="prod-ubic-total" aria-live="polite"></p>
             </fieldset>
             <div class="form-group">
-              <label for="prod-precio">Precio Unitario</label>
+              <label for="prod-precio">Precio unitario</label>
               <input type="number" id="prod-precio" step="0.01" min="0" />
             </div>
             <div class="form-group">
@@ -1883,111 +1935,24 @@
               <tbody></tbody>
             </table>
           </div>
-          <div
-            id="dashboard-stock"
-            style="
-              width: 320px;
-              background: var(--bg-secondary);
-              padding: 1.5rem;
-              border-radius: 12px;
-              height: fit-content;
-              position: sticky;
-              top: 100px;
-            "
-          >
-            <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem">
-              Dashboard Stock
-            </h3>
-            <div class="dash-stats">
-              <div
-                style="
-                  padding: 1rem;
-                  background: var(--bg-primary);
-                  border-radius: 8px;
-                "
-              >
-                <div
-                  style="
-                    color: var(--text-secondary);
-                    font-size: 0.9rem;
-                    margin-bottom: 0.5rem;
-                  "
-                >
-                  Total Productos
-                </div>
-                <div
-                  id="total-productos"
-                  style="font-size: 1.8rem; font-weight: 700"
-                >
-                  0
-                </div>
+          <div id="dashboard-stock" aria-labelledby="resumen-titulo">
+            <h3 id="resumen-titulo">Resumen de stock</h3>
+            <dl class="resumen-totales">
+              <div>
+                <dt>Productos</dt>
+                <dd id="total-productos">0</dd>
               </div>
-              <div
-                style="
-                  padding: 1rem;
-                  background: var(--bg-primary);
-                  border-radius: 8px;
-                "
-              >
-                <div
-                  style="
-                    color: var(--text-secondary);
-                    font-size: 0.9rem;
-                    margin-bottom: 0.5rem;
-                  "
-                >
-                  Bajo Stock
-                </div>
-                <div
-                  id="bajo-stock-count"
-                  style="font-size: 1.8rem; font-weight: 700; color: var(--danger-text)"
-                >
-                  0
-                </div>
+              <div>
+                <dt>Stock bajo</dt>
+                <dd id="bajo-stock-count" class="dato-bajo">0</dd>
               </div>
-              <div
-                style="
-                  padding: 1rem;
-                  background: var(--bg-primary);
-                  border-radius: 8px;
-                "
-              >
-                <div
-                  style="
-                    color: var(--text-secondary);
-                    font-size: 0.9rem;
-                    margin-bottom: 0.5rem;
-                  "
-                >
-                  Alto Stock
-                </div>
-                <div
-                  id="alto-stock-count"
-                  style="font-size: 1.8rem; font-weight: 700; color: var(--success-text)"
-                >
-                  0
-                </div>
+              <div>
+                <dt>Stock alto</dt>
+                <dd id="alto-stock-count" class="dato-alto">0</dd>
               </div>
-            </div>
-            <div
-              style="
-                margin-top: 1.5rem;
-                border-top: 1px solid var(--border-color);
-                padding-top: 1.5rem;
-              "
-            >
-              <h4 style="margin-bottom: 1rem; font-size: 1rem">Alertas</h4>
-              <div
-                id="alertas-list"
-                style="
-                  max-height: 300px;
-                  overflow-y: auto;
-                  display: flex;
-                  flex-direction: column;
-                  gap: 0.75rem;
-                "
-              ></div>
-            </div>
+            </dl>
+            <h4>Alertas</h4>
+            <ul id="alertas-list" class="alertas"></ul>
           </div>
         </div>
       </div>
@@ -1999,7 +1964,7 @@
           <svg class="icon" aria-hidden="true">
             <use href="assets/icons.svg?v=4#i-plus"></use>
           </svg>
-          Nueva Categoría
+          Nueva categoría
         </button>
         <div
           id="categoria-form"
@@ -2011,28 +1976,12 @@
             onclick="closeForm('categoria')"
             class="close-btn"
             aria-label="Cerrar"
-            style="
-              position: absolute;
-              top: 1.5rem;
-              right: 1.5rem;
-              background: none;
-              border: none;
-              font-size: 1.5rem;
-              cursor: pointer;
-              color: var(--text-secondary);
-              padding: 0;
-              width: 44px;
-              height: 44px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            "
           >
             <svg class="icon" aria-hidden="true">
               <use href="assets/icons.svg?v=4#i-x"></use>
             </svg>
           </button>
-          <h3>Agregar Categoría</h3>
+          <h3>Agregar categoría</h3>
           <form onsubmit="guardarCategoria(event)">
             <div class="form-group">
               <label for="cat-nombre">Nombre</label>
@@ -2046,9 +1995,9 @@
               <label for="cat-color">Color</label>
               <div class="color-picker-container">
                 <div class="color-input-wrapper">
-                  <input type="color" id="cat-color" value="#0071E3" />
+                  <input type="color" id="cat-color" value="#6E6E73" />
                 </div>
-                <div class="color-label" id="cat-color-label">#0071E3</div>
+                <div class="color-label" id="cat-color-label">#6E6E73</div>
               </div>
             </div>
             <div class="form-group">
@@ -2059,7 +2008,7 @@
             <button class="btn btn-primary" type="submit">Guardar</button>
           </form>
         </div>
-        <table id="categorias-table" style="margin-top: 1.5rem">
+        <table id="categorias-table" class="tabla-separada">
           <thead>
             <tr>
               <th>Nombre</th>
@@ -2184,21 +2133,6 @@
             onclick="closeForm('usuario')"
             class="close-btn"
             aria-label="Cerrar"
-            style="
-              position: absolute;
-              top: 1.5rem;
-              right: 1.5rem;
-              background: none;
-              border: none;
-              cursor: pointer;
-              color: var(--text-secondary);
-              padding: 0;
-              width: 44px;
-              height: 44px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            "
           >
             <svg class="icon" aria-hidden="true">
               <use href="assets/icons.svg?v=4#i-x"></use>
@@ -2238,7 +2172,7 @@
             <button class="btn btn-primary" type="submit">Guardar</button>
           </form>
         </div>
-        <table id="usuarios-table" style="margin-top: 1.5rem">
+        <table id="usuarios-table" class="tabla-separada">
           <thead>
             <tr>
               <th>Usuario</th>
@@ -2326,27 +2260,10 @@
         tabla.querySelectorAll("td").forEach((c) => c.setAttribute("role", "cell"));
       }
 
-      function setupScrollReveal() {
-        const observer = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (entry.isIntersecting) {
-                entry.target.classList.add("visible");
-              }
-            });
-          },
-          { threshold: 0.1 },
-        );
-
-        document
-          .querySelectorAll(".reveal")
-          .forEach((el) => observer.observe(el));
-      }
-
       // Bump ?v= (here and in the HTML) when icons.svg changes, so phones drop their cached copy.
       const ICON_SPRITE = "assets/icons.svg?v=4";
       const DEFAULT_CAT_ICON = "box";
-      const DEFAULT_CAT_COLOR = "#0071E3";
+      const DEFAULT_CAT_COLOR = "#6E6E73";
 
       const CATEGORY_ICONS = [
         ["box", "General"],
@@ -2443,34 +2360,11 @@
 
       function applyTheme(theme) {
         document.documentElement.setAttribute("data-theme", theme);
-        setThemeIcon(theme);
-      }
-
-      function toggleTheme() {
-        const current = document.documentElement.getAttribute("data-theme");
-        const newTheme = current === "dark" ? "light" : "dark";
-        // Picking the same theme as the system goes back to following the system.
-        if (newTheme === systemTheme()) localStorage.removeItem("theme-manual");
-        else localStorage.setItem("theme-manual", newTheme);
-        applyTheme(newTheme);
-      }
-
-      function setThemeIcon(theme) {
-        const boton = document.getElementById("btn-tema");
-        boton
-          .querySelector("use")
-          .setAttribute("href", `${ICON_SPRITE}#i-${theme === "dark" ? "moon" : "sun"}`);
-        // The name says what pressing does, not which mode is on.
-        const accion = theme === "dark" ? "Activar modo claro" : "Activar modo oscuro";
-        boton.setAttribute("aria-label", accion);
-        boton.title = accion;
       }
 
       function initTheme() {
-        applyTheme(localStorage.getItem("theme-manual") || systemTheme());
-        systemDark.addEventListener("change", () => {
-          if (!localStorage.getItem("theme-manual")) applyTheme(systemTheme());
-        });
+        applyTheme(systemTheme());
+        systemDark.addEventListener("change", () => applyTheme(systemTheme()));
       }
 
       function showTab(tab) {
@@ -2603,7 +2497,7 @@
           editingProductoId = null;
           document
             .getElementById("producto-form")
-            .querySelector("h3").textContent = "Agregar Producto";
+            .querySelector("h3").textContent = "Agregar producto";
           document
             .getElementById("producto-form")
             .querySelector("form")
@@ -2613,7 +2507,7 @@
           editingCategoriaId = null;
           document
             .getElementById("categoria-form")
-            .querySelector("h3").textContent = "Agregar Categoría";
+            .querySelector("h3").textContent = "Agregar categoría";
           document
             .getElementById("categoria-form")
             .querySelector("form")
@@ -2634,12 +2528,12 @@
           // Llenar tabla
           const tbody = document.querySelector("#categorias-table tbody");
           if (datos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding: 3rem 1rem; color: var(--text-secondary);">No hay categorías. Crea una para empezar.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="4" class="vacio">No hay categorías. Crea una para empezar.</td></tr>`;
           } else {
             tbody.innerHTML = datos
               .map(
                 (cat) => `
-                        <tr class="reveal">
+                        <tr>
                             <td data-label="Nombre"><span class="cat-name">${catTile(cat.icono, cat.color_hex)}${escapeHtml(cat.nombre)}</span></td>
                             <td data-label="Color"><div class="color-badge" role="img" aria-label="Color ${safeCatColor(cat.color_hex)}" style="background: ${safeCatColor(cat.color_hex)}"></div></td>
                             <td data-label="Descripción">${escapeHtml(cat.descripcion || "-")}</td>
@@ -2657,7 +2551,6 @@
               .join("");
           }
           rolesDeTabla(tbody.closest("table"));
-          setupScrollReveal();
 
           // Llenar select de productos
           const select = document.getElementById("prod-categoria");
@@ -2771,11 +2664,17 @@
           `Total: <strong>${fmtNum(total)}</strong> unidades`;
       }
 
+      // One secondary line under the total; with several warehouses the breakdown opens on demand.
       function celdaCantidad(prod) {
-        const detalle = (prod.ubicaciones || [])
-          .map((u) => `<span>${escapeHtml(u.nombre)}: ${fmtNum(u.cantidad)}</span>`)
-          .join("");
-        return `<div class="cant">${prod.cantidad}${detalle ? `<div class="ubic">${detalle}</div>` : ""}</div>`;
+        const ubic = prod.ubicaciones || [];
+        const linea = (u) => `${escapeHtml(u.nombre)}: ${fmtNum(u.cantidad)}`;
+        let detalle = "";
+        if (ubic.length === 1) detalle = `<div class="ubic">${linea(ubic[0])}</div>`;
+        if (ubic.length > 1)
+          detalle = `<details class="ubic"><summary>En ${ubic.length} almacenes</summary>${ubic
+            .map((u) => `<div>${linea(u)}</div>`)
+            .join("")}</details>`;
+        return `<div class="cant">${prod.cantidad}${detalle}</div>`;
       }
 
       function filaAlmacen(almacen = { nombre: "", capacidad: "" }) {
@@ -2896,6 +2795,8 @@
         let estado = "";
         if (usado > capacidad) {
           estado = `<div class="alm-estado">${icon("alert-triangle", "color: #FF3B30")} Capacidad excedida por ${fmtNum(usado - capacidad)} cajas</div>`;
+        } else if (usado === capacidad) {
+          estado = `<div class="alm-estado">${icon("alert-triangle", "color: #FF3B30")} Sin espacio libre</div>`;
         } else if (pctCap(usado) >= 90) {
           estado = `<div class="alm-estado">${icon("alert-triangle", "color: #FF9500")} Almacén casi lleno</div>`;
         }
@@ -2957,7 +2858,7 @@
           .map((a) => {
             const cajas = usadoPorAlmacen.get(a.id) || 0;
             const pct = (cajas / a.capacidad) * 100;
-            const color = pct > 100 ? "#FF3B30" : pct >= 90 ? "#FF9500" : "#0071E3";
+            const color = pct >= 100 ? "#FF3B30" : pct >= 90 ? "#FF9500" : "var(--info-text)";
             return `<div class="cat-row">
                 <span class="cat-name">${icon("warehouse")}${escapeHtml(a.nombre)}</span>
                 <div class="cat-bar"><span style="width: ${Math.min(pct, 100)}%; background: ${color}"></span></div>
@@ -3122,22 +3023,22 @@
         const v = parseFloat(venta);
         const c = parseFloat(compra);
         if (!(v > 0) || isNaN(c)) {
-          return '<span style="color: var(--text-secondary);">-</span>';
+          return '<span class="sin-dato">-</span>';
         }
         const margen = ((v - c) / v) * 100;
-        const color = margen < 0 ? "var(--danger-text)" : "var(--text-primary)";
+
         const texto = margen.toLocaleString("es-ES", {
           minimumFractionDigits: 1,
           maximumFractionDigits: 1,
         });
-        return `<span style="color: ${color}; font-weight: 600;">${texto}%</span>`;
+        return `<span class="margen${margen < 0 ? " negativo" : ""}">${texto}%</span>`;
       }
 
       function getStockStatus(cantidad) {
         if (cantidad <= 10)
-          return { status: "bajo", label: "Bajo Stock", color: "var(--danger-text)" };
+          return { status: "bajo", label: "Stock bajo", color: "var(--danger-text)" };
         if (cantidad >= 100)
-          return { status: "alto", label: "Alto Stock", color: "var(--success-text)" };
+          return { status: "alto", label: "Stock alto", color: "var(--success-text)" };
         return { status: "normal", label: "Normal", color: "var(--info-text)" };
       }
 
@@ -3151,7 +3052,7 @@
           const alertas = [];
 
           if (datos.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 3rem 1rem; color: var(--text-secondary);">No hay productos. Crea uno para empezar.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="vacio">No hay productos. Crea uno para empezar.</td></tr>`;
           } else {
             tbody.innerHTML = datos
               .map((prod) => {
@@ -3176,12 +3077,12 @@
                 }
 
                 return `
-                            <tr class="reveal">
+                            <tr>
                                 <td data-label="Nombre">${escapeHtml(prod.nombre)}</td>
-                                <td data-label="SKU"><code style="background: var(--bg-secondary); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">${escapeHtml(prod.sku)}</code></td>
+                                <td data-label="SKU"><code class="sku">${escapeHtml(prod.sku)}</code></td>
                                 <td data-label="Categoría"><span class="cat-name">${catTile(prod.categoria_icono, prod.categoria_color, "sm")}${escapeHtml(prod.categoria)}</span></td>
                                 <td data-label="Cantidad">${celdaCantidad(prod)}</td>
-                                <td data-label="Estado"><span style="background: color-mix(in srgb, ${statusObj.color} 12%, transparent); color: ${statusObj.color}; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; border: 1.5px solid ${statusObj.color}; white-space: nowrap; display: inline-block;">${statusObj.label}</span></td>
+                                <td data-label="Estado"><span class="estado-stock" style="--c: ${statusObj.color}">${statusObj.label}</span></td>
                                 <td data-label="Precio">$${precio}</td>
                                 <td data-label="Margen">${formatMargen(prod.precio_unitario, prod.precio_compra)}</td>
                                 <td data-label="Acciones">
@@ -3209,33 +3110,30 @@
           const { excedidos } = planRedistribucion(almacenesGuardados, datos);
           const alertasAlmacen = excedidos
             .map(
-              (e) => `<div style="padding: 0.75rem; background: var(--bg-primary); border-radius: 6px; border-left: 3px solid #FF3B30; font-size: 0.9rem;">
-                  <div class="cat-name" style="font-weight: 600; gap: 0.5rem;">${icon("warehouse")}${escapeHtml(e.nombre)}</div>
-                  <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.5rem;">Excede su capacidad por ${fmtNum(e.exceso)} cajas • <button type="button" class="link-btn" onclick="irARedistribuir()">Ver cómo redistribuir</button></div>
-                </div>`,
+              (e) => `<li>
+                  <div class="cat-name alerta-nombre">${icon("warehouse", "color: var(--danger-text)")}${escapeHtml(e.nombre)}</div>
+                  <div class="alerta-detalle">Excede su capacidad por ${fmtNum(e.exceso)} cajas · <button type="button" class="link-btn" onclick="irARedistribuir()">Ver cómo redistribuir</button></div>
+                </li>`,
             )
             .join("");
           if (alertas.length === 0 && !alertasAlmacen) {
-            alertasList.innerHTML =
-              '<div style="color: var(--text-secondary); font-size: 0.9rem;">Sin alertas</div>';
+            alertasList.innerHTML = '<li class="alerta-vacia">Sin alertas</li>';
           } else {
             alertasList.innerHTML = alertasAlmacen + alertas
               .map((alerta) => {
                 const esBajo = alerta.tipo === "bajo";
-                const color = esBajo ? "var(--danger-text)" : "var(--success-text)";
                 const accion = esBajo
                   ? `${icon("alert-triangle")} Re-stock`
                   : `${icon("tag-price")} Oferta`;
-                return `<div style="padding: 0.75rem; background: var(--bg-primary); border-radius: 6px; border-left: 3px solid ${color}; font-size: 0.9rem;">
-                            <div class="cat-name" style="font-weight: 600; gap: 0.5rem;">${catTile(alerta.icono, alerta.color, "sm")}${escapeHtml(alerta.nombre)}</div>
-                            <div style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.5rem;">Stock: ${alerta.cantidad} • <span style="color: ${color}; font-weight: 600;">${accion}</span></div>
-                        </div>`;
+                return `<li>
+                            <div class="cat-name alerta-nombre">${catTile(alerta.icono, alerta.color, "sm")}${escapeHtml(alerta.nombre)}</div>
+                            <div class="alerta-detalle">Stock: ${alerta.cantidad} · <span class="alerta-accion ${esBajo ? "bajo" : "alto"}">${accion}</span></div>
+                        </li>`;
               })
               .join("");
           }
 
           rolesDeTabla(tbody.closest("table"));
-          setupScrollReveal();
         } catch (e) {
           console.error(e);
         }
@@ -3249,7 +3147,7 @@
 
           editingCategoriaId = id;
           document.getElementById("cat-nombre").value = cat.nombre || "";
-          const colorValue = (cat.color_hex || "#0071E3").toUpperCase();
+          const colorValue = (cat.color_hex || DEFAULT_CAT_COLOR).toUpperCase();
           const colorInput = document.getElementById("cat-color");
           colorInput.value = colorValue;
           document.getElementById("cat-desc").value = cat.descripcion || "";
@@ -3259,7 +3157,7 @@
 
           document
             .getElementById("categoria-form")
-            .querySelector("h3").textContent = "Editar Categoría";
+            .querySelector("h3").textContent = "Editar categoría";
           abrirFormulario("categoria");
         } catch (e) {
           console.error("Error al editar:", e);
@@ -3318,7 +3216,7 @@
 
           document
             .getElementById("producto-form")
-            .querySelector("h3").textContent = "Editar Producto";
+            .querySelector("h3").textContent = "Editar producto";
           abrirFormulario("producto");
         } catch (e) {
           alert("Error: " + e.message);
