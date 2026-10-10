@@ -812,6 +812,20 @@
         font-weight: 500;
       }
 
+      .aviso-bloqueo strong {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        margin-bottom: 0.3rem;
+        font-size: 0.95rem;
+      }
+
+      .aviso-bloqueo .icon {
+        width: 1.1rem;
+        height: 1.1rem;
+        flex-shrink: 0;
+      }
+
       [aria-invalid="true"] {
         border-color: var(--danger-text) !important;
       }
@@ -2550,6 +2564,7 @@
 
       function limpiarErrorFormulario(type) {
         const caja = document.getElementById(`${type}-error`);
+        caja.classList.remove("aviso-bloqueo");
         caja.hidden = true;
         caja.textContent = "";
         document.querySelectorAll(`[aria-describedby="${caja.id}"]`).forEach((campo) => {
@@ -2665,6 +2680,7 @@
         if (!res.ok) {
           const error = new Error(data.error || "Error del servidor");
           error.campo = data.campo;
+          error.bloqueado = data.bloqueado;
           throw error;
         }
         return data;
@@ -3424,6 +3440,15 @@
           document.getElementById("form-login").reset();
           await entrar(usuario);
         } catch (err) {
+          if (err.bloqueado) {
+            // Locked account: a warning with its own title, not the usual wrong-password line.
+            const caja = document.getElementById("login-error");
+            caja.innerHTML = `<strong>${icon("alert-triangle")} Cuenta bloqueada por seguridad</strong> ${escapeHtml(err.message)}`;
+            caja.classList.add("aviso-bloqueo");
+            caja.hidden = false;
+            document.getElementById("login-password").value = "";
+            return;
+          }
           mostrarErrorFormulario("login", err);
           document.getElementById("login-password").select();
         } finally {
