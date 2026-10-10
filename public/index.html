@@ -1066,6 +1066,59 @@
         overflow-wrap: anywhere;
       }
 
+      /* Kárdex */
+      #valuacion {
+        margin: 1.5rem 0;
+      }
+
+      #valuacion h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.25rem;
+      }
+
+      #valuacion .kpi-row {
+        margin: 1rem 0;
+      }
+
+      #valuacion .kpi-value {
+        font-size: 1.5rem;
+      }
+
+      .aviso-cfdi {
+        color: var(--danger-text);
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+      }
+
+      .valor-productos summary {
+        cursor: pointer;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+      }
+
+      @media (min-width: 769px) {
+        .tabla-desplazable {
+          overflow-x: auto;
+        }
+      }
+
+      #kardex-table td:first-child {
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .cantidad-mov {
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      .rfc {
+        display: block;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+      }
+
       /* Failed logins and similar warnings stand out in the log. */
       .actividad-alerta {
         color: var(--danger-text);
@@ -1537,6 +1590,10 @@
           height: 1.5rem;
         }
 
+        body.es-admin .nav-tab {
+          font-size: 0.625rem;
+        }
+
         /* Room for the tab bar, so the last row is never hidden behind it. */
         #app {
           padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
@@ -1630,6 +1687,18 @@
         td:first-child::before,
         td:last-child::before {
           display: none;
+        }
+
+        /* The kárdex ends in the user, not buttons: keep it as a labeled row. */
+        #kardex-table td:last-child {
+          display: grid;
+          justify-content: normal;
+          padding-top: 0;
+          border-top: none;
+        }
+
+        #kardex-table td:last-child::before {
+          display: block;
         }
 
         /* The activity log ends in text, not buttons: read it left to right. */
@@ -1804,7 +1873,7 @@
           <div class="header-acciones">
             <span class="usuario-actual">
               <svg class="icon" aria-hidden="true">
-                <use href="assets/icons.svg?v=4#i-user"></use>
+                <use href="assets/icons.svg?v=5#i-user"></use>
               </svg>
               <span id="usuario-nombre"></span>
             </span>
@@ -1816,7 +1885,7 @@
               aria-label="Cerrar sesión"
             >
               <svg class="icon" aria-hidden="true">
-                <use href="assets/icons.svg?v=4#i-logout"></use>
+                <use href="assets/icons.svg?v=5#i-logout"></use>
               </svg>
             </button>
           </div>
@@ -1828,23 +1897,27 @@
       <nav aria-label="Secciones">
         <div class="nav-tabs" role="tablist" onkeydown="moverEntrePestanas(event)">
           <button class="nav-tab active" role="tab" id="tab-productos" aria-selected="true" aria-controls="productos" onclick="showTab('productos')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=4#i-box"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=5#i-box"></use></svg>
             Productos
           </button>
           <button class="nav-tab" role="tab" id="tab-categorias" aria-selected="false" aria-controls="categorias" tabindex="-1" onclick="showTab('categorias')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=4#i-tag-price"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=5#i-tag-price"></use></svg>
             Categorías
           </button>
           <button class="nav-tab" role="tab" id="tab-almacen" aria-selected="false" aria-controls="almacen" tabindex="-1" onclick="showTab('almacen')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=4#i-warehouse"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=5#i-warehouse"></use></svg>
             Almacén
           </button>
+          <button class="nav-tab" role="tab" id="tab-kardex" aria-selected="false" aria-controls="kardex" tabindex="-1" onclick="showTab('kardex')">
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=5#i-bill-list"></use></svg>
+            Kárdex
+          </button>
           <button class="nav-tab solo-admin" role="tab" id="tab-usuarios" aria-selected="false" aria-controls="usuarios" tabindex="-1" onclick="showTab('usuarios')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=4#i-users"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=5#i-users"></use></svg>
             Usuarios
           </button>
           <button class="nav-tab solo-admin" role="tab" id="tab-actividad" aria-selected="false" aria-controls="actividad" tabindex="-1" onclick="showTab('actividad')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=4#i-history"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=5#i-history"></use></svg>
             Actividad
           </button>
         </div>
@@ -1855,7 +1928,7 @@
         <h2>Productos</h2>
         <button class="btn btn-primary" id="btn-nuevo-producto" onclick="showForm('producto')">
           <svg class="icon" aria-hidden="true">
-            <use href="assets/icons.svg?v=4#i-plus"></use>
+            <use href="assets/icons.svg?v=5#i-plus"></use>
           </svg>
           Nuevo producto
         </button>
@@ -1871,7 +1944,7 @@
             aria-label="Cerrar"
           >
             <svg class="icon" aria-hidden="true">
-              <use href="assets/icons.svg?v=4#i-x"></use>
+              <use href="assets/icons.svg?v=5#i-x"></use>
             </svg>
           </button>
           <h3>Agregar producto</h3>
@@ -1962,7 +2035,7 @@
         <h2>Categorías</h2>
         <button class="btn btn-primary solo-admin" id="btn-nuevo-categoria" onclick="showForm('categoria')">
           <svg class="icon" aria-hidden="true">
-            <use href="assets/icons.svg?v=4#i-plus"></use>
+            <use href="assets/icons.svg?v=5#i-plus"></use>
           </svg>
           Nueva categoría
         </button>
@@ -1978,7 +2051,7 @@
             aria-label="Cerrar"
           >
             <svg class="icon" aria-hidden="true">
-              <use href="assets/icons.svg?v=4#i-x"></use>
+              <use href="assets/icons.svg?v=5#i-x"></use>
             </svg>
           </button>
           <h3>Agregar categoría</h3>
@@ -2051,7 +2124,7 @@
               onclick="agregarFilaAlmacen()"
             >
               <svg class="icon" aria-hidden="true">
-                <use href="assets/icons.svg?v=4#i-plus"></use>
+                <use href="assets/icons.svg?v=5#i-plus"></use>
               </svg>
               Agregar almacén
             </button>
@@ -2114,12 +2187,170 @@
         </div>
       </div>
 
+      <!-- KÁRDEX: inventory movements with their invoice (CFDI) -->
+      <div id="kardex" class="content" role="tabpanel" aria-labelledby="tab-kardex">
+        <h2>Kárdex</h2>
+        <p class="ayuda">Entradas y salidas de cada producto con su factura (CFDI). Las existencias se actualizan solas.</p>
+        <button class="btn btn-primary" id="btn-nuevo-movimiento" onclick="showForm('movimiento')" style="margin-top: 1rem">
+          <svg class="icon" aria-hidden="true">
+            <use href="assets/icons.svg?v=5#i-plus"></use>
+          </svg>
+          Registrar movimiento
+        </button>
+
+        <div id="movimiento-form" class="form-section" style="display: none; margin-top: 1.5rem; position: relative">
+          <button type="button" onclick="closeForm('movimiento')" class="close-btn" aria-label="Cerrar">
+            <svg class="icon" aria-hidden="true">
+              <use href="assets/icons.svg?v=5#i-x"></use>
+            </svg>
+          </button>
+          <h3>Registrar movimiento</h3>
+          <form onsubmit="guardarMovimiento(event)">
+            <div class="form-group">
+              <label for="mov-tipo">Tipo</label>
+              <select id="mov-tipo" onchange="actualizarFormMovimiento()">
+                <option value="compra">Compra a un proveedor (entrada)</option>
+                <option value="venta">Venta a un cliente (salida)</option>
+                <option value="devolucion_cliente">Devolución de un cliente (entrada)</option>
+                <option value="devolucion_proveedor">Devolución a un proveedor (salida)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="mov-producto">Producto</label>
+              <select id="mov-producto" required></select>
+            </div>
+            <div class="form-group">
+              <label for="mov-almacen">Almacén</label>
+              <select id="mov-almacen" required></select>
+            </div>
+            <div class="form-group">
+              <label for="mov-cantidad">Cantidad</label>
+              <input type="number" id="mov-cantidad" min="1" step="1" required />
+            </div>
+            <div class="form-group" id="mov-costo-grupo">
+              <label for="mov-costo">Costo unitario sin IVA</label>
+              <input type="number" id="mov-costo" min="0" step="0.01" />
+            </div>
+            <div class="form-group" id="mov-precio-grupo">
+              <label for="mov-precio" id="mov-precio-label">Precio unitario sin IVA</label>
+              <input type="number" id="mov-precio" min="0" step="0.01" />
+            </div>
+            <fieldset class="form-group">
+              <legend id="mov-cfdi-legend">Factura (CFDI de ingreso)</legend>
+              <div class="form-group">
+                <label for="mov-uuid">Folio fiscal (UUID)</label>
+                <input type="text" id="mov-uuid" maxlength="36" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" aria-describedby="mov-uuid-ayuda" />
+                <p class="ayuda" id="mov-uuid-ayuda">Viene impreso en la factura. Si aún no la tienes, puedes agregarla después.</p>
+              </div>
+              <div class="form-group">
+                <label for="mov-rfc" id="mov-rfc-label">RFC del proveedor</label>
+                <input type="text" id="mov-rfc" maxlength="13" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+              </div>
+            </fieldset>
+            <div class="form-group">
+              <label for="mov-nota">Nota (opcional)</label>
+              <input type="text" id="mov-nota" maxlength="255" autocomplete="off" />
+            </div>
+            <p class="form-error" id="movimiento-error" role="alert" hidden></p>
+            <button class="btn btn-primary" type="submit">Registrar</button>
+          </form>
+        </div>
+
+        <div id="factura-form" class="form-section" style="display: none; margin-top: 1.5rem; position: relative">
+          <button type="button" onclick="closeForm('factura')" class="close-btn" aria-label="Cerrar">
+            <svg class="icon" aria-hidden="true">
+              <use href="assets/icons.svg?v=5#i-x"></use>
+            </svg>
+          </button>
+          <h3>Agregar factura</h3>
+          <p class="ayuda" id="fac-resumen"></p>
+          <form onsubmit="guardarFactura(event)">
+            <div class="form-group">
+              <label for="fac-uuid">Folio fiscal (UUID)</label>
+              <input type="text" id="fac-uuid" maxlength="36" required autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />
+            </div>
+            <div class="form-group">
+              <label for="fac-rfc" id="fac-rfc-label">RFC</label>
+              <input type="text" id="fac-rfc" maxlength="13" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+            </div>
+            <p class="form-error" id="factura-error" role="alert" hidden></p>
+            <button class="btn btn-primary" type="submit">Guardar factura</button>
+          </form>
+        </div>
+
+        <section id="valuacion" class="solo-admin" aria-labelledby="valuacion-titulo">
+          <h3 id="valuacion-titulo">Valor del inventario y costo de lo vendido</h3>
+          <p class="ayuda">Método de costo promedio (LISR, art. 41). Ventas y costo son del mes elegido; el valor del inventario es el de hoy.</p>
+          <div class="kpi-row">
+            <div class="kpi">
+              <div class="kpi-label">Valor del inventario hoy</div>
+              <div class="kpi-value" id="val-inventario"></div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Ventas netas del mes</div>
+              <div class="kpi-value" id="val-ventas"></div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Costo de lo vendido</div>
+              <div class="kpi-value" id="val-costo"></div>
+            </div>
+            <div class="kpi">
+              <div class="kpi-label">Utilidad bruta</div>
+              <div class="kpi-value" id="val-utilidad"></div>
+            </div>
+          </div>
+          <p class="aviso-cfdi" id="val-sin-cfdi" hidden></p>
+          <details class="valor-productos">
+            <summary>Valor por producto</summary>
+            <table id="valuacion-table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Existencia</th>
+                  <th>Costo promedio</th>
+                  <th>Valor</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </details>
+        </section>
+
+        <div class="filtros-actividad">
+          <div class="form-group">
+            <label for="kdx-mes">Mes</label>
+            <input type="month" id="kdx-mes" onchange="cargarKardex()" />
+          </div>
+          <div class="form-group">
+            <label for="kdx-producto">Producto</label>
+            <select id="kdx-producto" onchange="pintarKardex()"></select>
+          </div>
+        </div>
+        <div class="tabla-desplazable">
+          <table id="kardex-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Movimiento</th>
+                <th>Producto</th>
+                <th>Almacén</th>
+                <th>Cantidad</th>
+                <th>Precio o costo</th>
+                <th>Factura</th>
+                <th>Usuario</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- USUARIOS (admin) -->
       <div id="usuarios" class="content solo-admin" role="tabpanel" aria-labelledby="tab-usuarios">
         <h2>Usuarios</h2>
         <button class="btn btn-primary" id="btn-nuevo-usuario" onclick="showForm('usuario')">
           <svg class="icon" aria-hidden="true">
-            <use href="assets/icons.svg?v=4#i-plus"></use>
+            <use href="assets/icons.svg?v=5#i-plus"></use>
           </svg>
           Nuevo usuario
         </button>
@@ -2135,7 +2366,7 @@
             aria-label="Cerrar"
           >
             <svg class="icon" aria-hidden="true">
-              <use href="assets/icons.svg?v=4#i-x"></use>
+              <use href="assets/icons.svg?v=5#i-x"></use>
             </svg>
           </button>
           <h3>Nuevo usuario</h3>
@@ -2261,7 +2492,7 @@
       }
 
       // Bump ?v= (here and in the HTML) when icons.svg changes, so phones drop their cached copy.
-      const ICON_SPRITE = "assets/icons.svg?v=4";
+      const ICON_SPRITE = "assets/icons.svg?v=5";
       const DEFAULT_CAT_ICON = "box";
       const DEFAULT_CAT_COLOR = "#6E6E73";
 
@@ -2383,6 +2614,7 @@
         if (tab === "almacen") cargarAlmacen();
         if (tab === "usuarios") cargarUsuarios();
         if (tab === "actividad") cargarActividad();
+        if (tab === "kardex") cargarKardex();
       }
 
       // Tab pattern: arrows, Home and End move between tabs; Tab leaves the tab list.
@@ -2406,6 +2638,7 @@
         const panel = document.getElementById(type + "-form");
         if (panel.style.display !== "none") return closeForm(type);
         if (type === "producto") prepararUbicaciones();
+        if (type === "movimiento") prepararFormularioMovimiento();
         if (type === "usuario") {
           editingUsuarioId = null;
           prepararFormularioUsuario();
@@ -2442,6 +2675,17 @@
         categoria: { nombre: "cat-nombre" },
         usuario: { usuario: "usu-usuario", nombre: "usu-nombre", password: "usu-password" },
         setup: { usuario: "setup-usuario", nombre: "setup-nombre", password: "setup-password" },
+        movimiento: {
+          tipo: "mov-tipo",
+          producto_id: "mov-producto",
+          almacen_id: "mov-almacen",
+          cantidad: "mov-cantidad",
+          costo_unitario: "mov-costo",
+          precio_unitario: "mov-precio",
+          cfdi_uuid: "mov-uuid",
+          rfc: "mov-rfc",
+        },
+        factura: { cfdi_uuid: "fac-uuid", rfc: "fac-rfc" },
       };
 
       function mostrarErrorFormulario(type, error) {
@@ -2517,6 +2761,9 @@
         } else if (type === "usuario") {
           editingUsuarioId = null;
           document.getElementById("usuario-form").querySelector("form").reset();
+        } else if (type === "movimiento" || type === "factura") {
+          document.getElementById(`${type}-form`).querySelector("form").reset();
+          facturaDeMovimiento = null;
         }
         limpiarErrorFormulario(type);
       }
@@ -3393,6 +3640,235 @@
       // USUARIOS (admin)
       let usuariosLista = [];
       let editingUsuarioId = null;
+
+      // ── Kárdex ──
+      let kardex = [];
+      let productosKardex = [];
+      let facturaDeMovimiento = null;
+
+      // [label, color, direction] per movement type.
+      const TIPOS_MOVIMIENTO = {
+        inicial: ["Inventario inicial", "var(--text-secondary)"],
+        compra: ["Compra", "var(--success-text)"],
+        venta: ["Venta", "var(--info-text)"],
+        devolucion_cliente: ["Devolución de cliente", "var(--success-text)"],
+        devolucion_proveedor: ["Devolución a proveedor", "var(--info-text)"],
+        traslado: ["Traslado", "var(--text-secondary)"],
+        ajuste: ["Ajuste", "var(--text-secondary)"],
+      };
+
+      const fmtDinero = (n) =>
+        "$" + Number(n).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: "always" });
+
+      function mesActual() {
+        const hoy = new Date();
+        return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
+      }
+
+      async function cargarKardex() {
+        const campoMes = document.getElementById("kdx-mes");
+        if (!campoMes.value) campoMes.value = mesActual();
+        try {
+          const [movimientos, productos] = await Promise.all([
+            api(`${API}?resource=kardex&mes=${campoMes.value}`),
+            api(`${API}?resource=productos`),
+          ]);
+          kardex = movimientos;
+          productosKardex = productos;
+          const filtro = document.getElementById("kdx-producto");
+          const elegido = filtro.value;
+          filtro.innerHTML =
+            '<option value="">Todos</option>' +
+            productos.map((p) => `<option value="${p.id}">${escapeHtml(p.nombre)}</option>`).join("");
+          filtro.value = elegido;
+          pintarKardex();
+          if (esAdmin()) cargarValuacion(campoMes.value);
+        } catch (e) {
+          alert(e.message);
+        }
+      }
+
+      function esAdmin() {
+        return usuarioActual?.rol === "admin";
+      }
+
+      function pintarKardex() {
+        const producto = document.getElementById("kdx-producto").value;
+        const filas = kardex.filter((m) => !producto || String(m.producto_id) === producto);
+        const tbody = document.querySelector("#kardex-table tbody");
+        tbody.innerHTML = filas.length
+          ? filas
+              .map((m) => {
+                const [etiqueta, color] = TIPOS_MOVIMIENTO[m.tipo] ?? [m.tipo, "var(--text-secondary)"];
+                const fecha = new Date(m.fecha.replace(" ", "T")).toLocaleString("es-MX", {
+                  dateStyle: "short",
+                  timeStyle: "short",
+                });
+                const cantidad =
+                  m.tipo === "traslado"
+                    ? `${fmtNum(m.cantidad)} → ${escapeHtml(m.almacen_destino ?? "almacén eliminado")}`
+                    : (m.cantidad > 0 ? "+" : "−") + fmtNum(Math.abs(m.cantidad));
+                const unitario =
+                  m.tipo === "compra"
+                    ? m.costo_unitario
+                    : ["venta", "devolucion_cliente"].includes(m.tipo)
+                      ? m.precio_unitario
+                      : null;
+                let factura = '<span class="sin-dato">No aplica</span>';
+                if (m.cfdi_uuid) {
+                  factura = `<code class="sku" title="${escapeHtml(m.cfdi_uuid)}">${escapeHtml(m.cfdi_uuid.slice(0, 8))}…</code>`;
+                } else if (m.cfdi_tipo) {
+                  factura = `<button class="btn btn-edit btn-texto" onclick="agregarFactura(${m.id})" aria-label="Agregar factura a la ${escapeHtml(etiqueta.toLowerCase())} de ${escapeHtml(m.producto_nombre)}">Agregar factura</button>`;
+                }
+                if (m.rfc) factura += `<span class="rfc">${escapeHtml(m.rfc)}</span>`;
+                return `<tr>
+                  <td data-label="Fecha">${fecha}</td>
+                  <td data-label="Movimiento"><span class="estado-stock" style="--c: ${color}">${etiqueta}</span></td>
+                  <td data-label="Producto">${escapeHtml(m.producto_nombre)}</td>
+                  <td data-label="Almacén">${escapeHtml(m.almacen ?? "—")}</td>
+                  <td data-label="Cantidad"><span class="cantidad-mov">${cantidad}</span></td>
+                  <td data-label="Precio o costo">${unitario === null ? '<span class="sin-dato">—</span>' : fmtDinero(unitario) + " c/u"}</td>
+                  <td data-label="Factura"><div>${factura}</div></td>
+                  <td data-label="Usuario">${escapeHtml(m.usuario)}</td>
+                </tr>`;
+              })
+              .join("")
+          : `<tr><td colspan="8" class="vacio">No hay movimientos en este mes${producto ? " para ese producto" : ""}.</td></tr>`;
+        rolesDeTabla(tbody.closest("table"));
+      }
+
+      async function cargarValuacion(mes) {
+        try {
+          const v = await api(`${API}?resource=valuacion&mes=${mes}`);
+          document.getElementById("val-inventario").textContent = fmtDinero(v.valor_inventario);
+          document.getElementById("val-ventas").textContent = fmtDinero(v.ventas_netas);
+          document.getElementById("val-costo").textContent = fmtDinero(v.costo_vendido);
+          document.getElementById("val-utilidad").textContent = fmtDinero(v.utilidad_bruta);
+          const aviso = document.getElementById("val-sin-cfdi");
+          aviso.hidden = v.sin_cfdi === 0;
+          aviso.textContent =
+            v.sin_cfdi === 1
+              ? "1 compra, venta o devolución de este mes todavía no tiene factura."
+              : `${v.sin_cfdi} compras, ventas o devoluciones de este mes todavía no tienen factura.`;
+          const tbody = document.querySelector("#valuacion-table tbody");
+          tbody.innerHTML = v.productos
+            .map(
+              (p) => `<tr>
+                <td data-label="Producto">${escapeHtml(p.nombre)}</td>
+                <td data-label="Existencia">${fmtNum(p.cantidad)}</td>
+                <td data-label="Costo promedio">${fmtDinero(p.costo_promedio)}</td>
+                <td data-label="Valor">${fmtDinero(p.valor)}</td>
+              </tr>`,
+            )
+            .join("");
+          rolesDeTabla(tbody.closest("table"));
+        } catch (e) {
+          alert(e.message);
+        }
+      }
+
+      function prepararFormularioMovimiento() {
+        document.getElementById("mov-producto").innerHTML =
+          '<option value="">Elige un producto</option>' +
+          productosKardex
+            .map((p) => `<option value="${p.id}">${escapeHtml(p.nombre)} (${escapeHtml(p.sku)})</option>`)
+            .join("");
+        document.getElementById("mov-almacen").innerHTML = almacenesGuardados
+          .map((a) => `<option value="${a.id}">${escapeHtml(a.nombre)}</option>`)
+          .join("");
+        actualizarFormMovimiento();
+      }
+
+      // Shows the amount and the counterpart that each type needs; hidden fields are disabled so they don't block submit.
+      function actualizarFormMovimiento() {
+        const tipo = document.getElementById("mov-tipo").value;
+        const conCosto = tipo === "compra";
+        const conPrecio = tipo === "venta" || tipo === "devolucion_cliente";
+        const proveedor = tipo === "compra" || tipo === "devolucion_proveedor";
+        for (const [grupo, visible, obligatorio] of [
+          ["mov-costo", conCosto, conCosto],
+          ["mov-precio", conPrecio, tipo === "venta"],
+        ]) {
+          document.getElementById(`${grupo}-grupo`).hidden = !visible;
+          const campo = document.getElementById(grupo);
+          campo.disabled = !visible;
+          campo.required = obligatorio;
+        }
+        document.getElementById("mov-precio-label").textContent =
+          tipo === "venta" ? "Precio unitario sin IVA" : "Importe devuelto por pieza, sin IVA (opcional)";
+        document.getElementById("mov-rfc-label").textContent = proveedor ? "RFC del proveedor" : "RFC del cliente";
+        document.getElementById("mov-cfdi-legend").textContent = tipo.startsWith("devolucion")
+          ? "Factura (CFDI de egreso, nota de crédito)"
+          : "Factura (CFDI de ingreso)";
+      }
+
+      async function guardarMovimiento(e) {
+        e.preventDefault();
+        limpiarErrorFormulario("movimiento");
+        const restaurar = botonCargando(e.target.querySelector('button[type="submit"]'), "Registrando…");
+        const valor = (id) => document.getElementById(id).value.trim();
+        try {
+          await api(`${API}?resource=kardex`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              tipo: valor("mov-tipo"),
+              producto_id: valor("mov-producto"),
+              almacen_id: valor("mov-almacen"),
+              cantidad: valor("mov-cantidad"),
+              costo_unitario: valor("mov-costo"),
+              precio_unitario: valor("mov-precio"),
+              cfdi_uuid: valor("mov-uuid"),
+              rfc: valor("mov-rfc"),
+              nota: valor("mov-nota"),
+            }),
+          });
+          closeForm("movimiento");
+          showSuccessToast("Movimiento registrado");
+          cargarKardex();
+        } catch (err) {
+          mostrarErrorFormulario("movimiento", err);
+        } finally {
+          restaurar();
+        }
+      }
+
+      function agregarFactura(id) {
+        const m = kardex.find((x) => x.id === id);
+        if (!m) return;
+        facturaDeMovimiento = id;
+        const [etiqueta] = TIPOS_MOVIMIENTO[m.tipo];
+        document.getElementById("fac-resumen").textContent =
+          `${etiqueta} de ${fmtNum(Math.abs(m.cantidad))} «${m.producto_nombre}» en ${m.almacen ?? "almacén eliminado"}.`;
+        document.getElementById("fac-rfc-label").textContent =
+          m.tipo === "compra" || m.tipo === "devolucion_proveedor" ? "RFC del proveedor" : "RFC del cliente";
+        document.getElementById("fac-rfc").value = m.rfc ?? "";
+        document.getElementById("movimiento-form").style.display = "none";
+        abrirFormulario("factura");
+      }
+
+      async function guardarFactura(e) {
+        e.preventDefault();
+        limpiarErrorFormulario("factura");
+        const restaurar = botonCargando(e.target.querySelector('button[type="submit"]'));
+        try {
+          await api(`${API}?resource=kardex&id=${facturaDeMovimiento}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              cfdi_uuid: document.getElementById("fac-uuid").value.trim(),
+              rfc: document.getElementById("fac-rfc").value.trim(),
+            }),
+          });
+          closeForm("factura");
+          showSuccessToast("Factura agregada");
+          cargarKardex();
+        } catch (err) {
+          mostrarErrorFormulario("factura", err);
+        } finally {
+          restaurar();
+        }
+      }
 
       let actividad = [];
       const AREAS = { sesion: "Sesión", inventario: "Inventario", categorias: "Categorías", almacenes: "Almacenes", usuarios: "Usuarios" };

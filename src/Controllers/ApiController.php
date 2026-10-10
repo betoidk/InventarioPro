@@ -92,13 +92,73 @@ function leerUbicaciones(array $data, array $usuario): ?array
     return $ubicaciones;
 }
 
+// Kárdex: every stock change is one row. cantidad is signed (+ enters, - leaves); a traslado stores the
+// amount moved from almacen_id to almacen_destino_id. The product's name and SKU are copied so the record
+// survives if the product is deleted later (CFF art. 30: records are kept five years).
+function registrarMovimiento(PDO $pdo, array $usuario, string $tipo, int $productoId, ?int $almacenId, int $cantidad, array $extra = []): void
+{
+    // The CFDI each operation should have: ingreso for purchases and sales, egreso for returns.
+    $cfdi = ['compra' => 'I', 'venta' => 'I', 'devolucion_cliente' => 'E', 'devolucion_proveedor' => 'E'][$tipo] ?? null;
+    $pdo->prepare("
+        INSERT INTO movimientos_inventario
+            (tipo, producto_id, producto_nombre, producto_sku, almacen_id, almacen_destino_id, cantidad,
+             costo_unitario, precio_unitario, cfdi_tipo, cfdi_uuid, rfc, nota, usuario_id, usuario)
+        SELECT ?, id, nombre, sku, ?, ?, ?, COALESCE(?, costo_promedio), ?, ?, ?, ?, ?, ?, ?
+        FROM productos WHERE id = ?
+    ")->execute([
+        $tipo, $almacenId, $extra['destino'] ?? null, $cantidad, $extra['costo'] ?? null, $extra['precio'] ?? null,
+        $cfdi, $extra['uuid'] ?? null, $extra['rfc'] ?? null, $extra['nota'] ?? null,
+        $usuario['id'], $usuario['usuario'], $productoId,
+    ]);
+}
+
+// Adds delta to one warehouse (never below 0) and refreshes the product total. Caller holds the transaction.
+function cambiarExistencia(PDO $pdo, int $productoId, int $almacenId, int $delta): void
+{
+    $stmt = $pdo->prepare("SELECT cantidad FROM producto_almacen WHERE producto_id = ? AND almacen_id = ? FOR UPDATE");
+    $stmt->execute([$productoId, $almacenId]);
+    $fila = $stmt->fetchColumn();
+    $actual = (int) $fila;
+    if ($actual + $delta < 0) {
+        responderError(409, "No hay suficiente existencia en ese almacén: hay $actual.", 'cantidad');
+    }
+    // Not INSERT ... ON DUPLICATE KEY: MySQL checks the CHECK (cantidad >= 0) on the inserted values first,
+    // so a negative delta would fail even when the row exists.
+    if ($fila === false) {
+        $pdo->prepare("INSERT INTO producto_almacen (producto_id, almacen_id, cantidad) VALUES (?, ?, ?)")
+            ->execute([$productoId, $almacenId, $delta]);
+    } else {
+        $pdo->prepare("UPDATE producto_almacen SET cantidad = cantidad + ? WHERE producto_id = ? AND almacen_id = ?")
+            ->execute([$delta, $productoId, $almacenId]);
+    }
+    $pdo->prepare("
+        UPDATE productos SET cantidad = (SELECT COALESCE(SUM(cantidad), 0) FROM producto_almacen WHERE producto_id = ?)
+        WHERE id = ?
+    ")->execute([$productoId, $productoId]);
+}
+
+// Optional CFDI data. Returns [uuid, rfc], each null when empty.
+function leerCfdi(array $data): array
+{
+    $uuid = strtoupper(trim((string) ($data['cfdi_uuid'] ?? '')));
+    if ($uuid !== '' && !preg_match('/^[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}$/', $uuid)) {
+        responderError(400, 'El folio fiscal (UUID) tiene 36 caracteres con este formato: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX (números y letras de la A a la F).', 'cfdi_uuid');
+    }
+    $rfc = mb_strtoupper(trim((string) ($data['rfc'] ?? '')));
+    if ($rfc !== '' && !preg_match('/^[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}$/u', $rfc)) {
+        responderError(400, 'El RFC tiene 12 caracteres si es empresa o 13 si es persona física.', 'rfc');
+    }
+    return [$uuid ?: null, $rfc ?: null];
+}
+
 // Writes only the warehouses received (already permission-checked); other warehouses' rows are never touched.
 // A row that reaches 0 stays, so the product keeps showing, and alerting as low stock, in that warehouse.
-function guardarUbicaciones(PDO $pdo, int $productoId, array $ubicaciones, bool $anclarSiVacio): void
+// Each change becomes a kárdex row of $tipo ('inicial' when the product is created, 'ajuste' when edited).
+function guardarUbicaciones(PDO $pdo, int $productoId, array $ubicaciones, bool $anclarSiVacio, array $usuario, string $tipo): void
 {
-    $stmt = $pdo->prepare("SELECT almacen_id FROM producto_almacen WHERE producto_id = ?");
+    $stmt = $pdo->prepare("SELECT almacen_id, cantidad FROM producto_almacen WHERE producto_id = ?");
     $stmt->execute([$productoId]);
-    $existentes = array_flip(array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)));
+    $existentes = array_map('intval', $stmt->fetchAll(PDO::FETCH_KEY_PAIR));
 
     $guardar = $pdo->prepare("
         INSERT INTO producto_almacen (producto_id, almacen_id, cantidad) VALUES (?, ?, ?)
@@ -109,6 +169,11 @@ function guardarUbicaciones(PDO $pdo, int $productoId, array $ubicaciones, bool 
         if ($cantidad > 0 || isset($existentes[$almacen])) {
             $guardar->execute([$productoId, $almacen, $cantidad, $cantidad]);
             $sinFila = false;
+            $delta = $cantidad - ($existentes[$almacen] ?? 0);
+            if ($delta !== 0) {
+                registrarMovimiento($pdo, $usuario, $tipo, $productoId, $almacen, $delta,
+                    ['nota' => $tipo === 'ajuste' ? 'Cantidad editada en el producto' : null]);
+            }
         }
     }
     // A non-admin's item with no stock yet is anchored to their first warehouse; otherwise it would be visible to everyone.
@@ -259,8 +324,8 @@ elseif ($resource === 'productos') {
 
         $pdo->beginTransaction();
         $stmt = $pdo->prepare("
-            INSERT INTO productos (nombre, descripcion, sku, categoria_id, cantidad, precio_unitario, precio_compra, estado)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO productos (nombre, descripcion, sku, categoria_id, cantidad, precio_unitario, precio_compra, estado, costo_promedio)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
             $data['nombre'],
@@ -270,11 +335,15 @@ elseif ($resource === 'productos') {
             $cantidad,
             $data['precio_unitario'] ?? null,
             $data['precio_compra'] ?? null,
-            $data['estado'] ?? 'activo'
+            $data['estado'] ?? 'activo',
+            // Until the first purchase, the stock is valued at the purchase price typed in.
+            (float) ($data['precio_compra'] ?? 0),
         ]);
         $nuevoId = (int) $pdo->lastInsertId();
         if ($ubicaciones !== null) {
-            guardarUbicaciones($pdo, $nuevoId, $ubicaciones, !esAdmin($actual));
+            guardarUbicaciones($pdo, $nuevoId, $ubicaciones, !esAdmin($actual), $actual, 'inicial');
+        } elseif ($cantidad > 0) {
+            registrarMovimiento($pdo, $actual, 'inicial', $nuevoId, null, (int) $cantidad);
         }
         $nuevo = fotoProducto($pdo, $nuevoId);
         registrar($pdo, $actual, 'inventario', "Creó el producto «{$nuevo['nombre']}» ({$nuevo['sku']}) con {$nuevo['cantidad']} unidades");
@@ -304,9 +373,14 @@ elseif ($resource === 'productos') {
             $id
         ]);
         if ($ubicaciones !== null) {
-            guardarUbicaciones($pdo, (int) $id, $ubicaciones, !esAdmin($actual));
+            guardarUbicaciones($pdo, (int) $id, $ubicaciones, !esAdmin($actual), $actual, 'ajuste');
         } elseif (esAdmin($actual)) {
-            $pdo->prepare("UPDATE productos SET cantidad = ? WHERE id = ?")->execute([$data['cantidad'] ?? 0, $id]);
+            $nueva = (int) ($data['cantidad'] ?? 0);
+            $pdo->prepare("UPDATE productos SET cantidad = ? WHERE id = ?")->execute([$nueva, $id]);
+            if ($nueva !== (int) $antes['cantidad']) {
+                registrarMovimiento($pdo, $actual, 'ajuste', (int) $id, null, $nueva - (int) $antes['cantidad'],
+                    ['nota' => 'Cantidad editada en el producto']);
+            }
         }
         $despues = fotoProducto($pdo, (int) $id);
         registrar($pdo, $actual, 'inventario', "Editó el producto «{$despues['nombre']}» ({$despues['sku']})" . describirCambios($antes, $despues));
@@ -426,6 +500,8 @@ elseif ($resource === 'productos') {
             // The source row is kept even at 0, so the product stays listed in that warehouse.
             $restar->execute([$cantidad, $producto, $desde]);
             $sumar->execute([$producto, $hacia, $cantidad, $cantidad]);
+            registrarMovimiento($pdo, $actual, 'traslado', $producto, $desde, $cantidad,
+                ['destino' => $hacia, 'nota' => 'Redistribución entre almacenes']);
             $leerProducto->execute([$producto]);
             $resumen[] = "$cantidad de «{$leerProducto->fetchColumn()}» de {$nombreAlmacen[$desde]} a {$nombreAlmacen[$hacia]}";
         }
@@ -433,6 +509,157 @@ elseif ($resource === 'productos') {
         $pdo->commit();
         echo json_encode(['mensaje' => 'Stock redistribuido']);
     }
+} elseif ($resource === 'kardex') {
+    $data = json_decode(file_get_contents('php://input'), true) ?: [];
+    $tiposOperacion = [
+        // tipo => [sign, label]
+        'compra' => [1, 'compra'],
+        'venta' => [-1, 'venta'],
+        'devolucion_cliente' => [1, 'devolución de cliente'],
+        'devolucion_proveedor' => [-1, 'devolución a proveedor'],
+    ];
+    if ($method === 'GET') {
+        $mes = preg_match('/^\d{4}-\d{2}$/', $_GET['mes'] ?? '') ? $_GET['mes'] : $pdo->query("SELECT DATE_FORMAT(NOW(), '%Y-%m')")->fetchColumn();
+        $sql = "SELECT m.id, m.fecha, m.tipo, m.producto_id, m.producto_nombre, m.producto_sku, m.almacen_id, a.nombre AS almacen,
+                       m.almacen_destino_id, d.nombre AS almacen_destino, m.cantidad, m.costo_unitario, m.precio_unitario,
+                       m.cfdi_tipo, m.cfdi_uuid, m.rfc, m.nota, m.usuario
+                FROM movimientos_inventario m
+                LEFT JOIN almacenes a ON a.id = m.almacen_id
+                LEFT JOIN almacenes d ON d.id = m.almacen_destino_id
+                WHERE m.fecha >= ? AND m.fecha < ? + INTERVAL 1 MONTH";
+        $params = ["$mes-01", "$mes-01"];
+        if (!esAdmin($actual)) {
+            if (!$actual['almacenes']) {
+                echo json_encode([]);
+                exit;
+            }
+            $marcadores = implode(',', array_fill(0, count($actual['almacenes']), '?'));
+            $sql .= " AND (m.almacen_id IN ($marcadores) OR m.almacen_destino_id IN ($marcadores))";
+            $params = [...$params, ...$actual['almacenes'], ...$actual['almacenes']];
+        }
+        // ponytail: one month per page, capped at 1000 rows; add paging if a month ever exceeds that.
+        $stmt = $pdo->prepare($sql . " ORDER BY m.fecha DESC, m.id DESC LIMIT 1000");
+        $stmt->execute($params);
+        echo json_encode($stmt->fetchAll());
+    } elseif ($method === 'POST') {
+        exigirAlmacenesAsignados($actual);
+        $tipo = $data['tipo'] ?? '';
+        if (!isset($tiposOperacion[$tipo])) {
+            responderError(400, 'Elige el tipo de movimiento.', 'tipo');
+        }
+        [$signo, $etiqueta] = $tiposOperacion[$tipo];
+        $productoId = filter_var($data['producto_id'] ?? null, FILTER_VALIDATE_INT);
+        if (!$productoId) {
+            responderError(400, 'Elige un producto.', 'producto_id');
+        }
+        $almacenId = filter_var($data['almacen_id'] ?? null, FILTER_VALIDATE_INT);
+        if (!$almacenId || !puedeUsarAlmacen($actual, $almacenId)) {
+            responderError(400, 'Elige uno de tus almacenes.', 'almacen_id');
+        }
+        $cantidad = filter_var($data['cantidad'] ?? null, FILTER_VALIDATE_INT);
+        if (!$cantidad || $cantidad < 1) {
+            responderError(400, 'La cantidad debe ser un número entero mayor que 0.', 'cantidad');
+        }
+        $importe = function (string $campo, bool $obligatorio) use ($data): ?float {
+            $valor = $data[$campo] ?? '';
+            if ($valor === '' || $valor === null) {
+                if ($obligatorio) {
+                    responderError(400, $campo === 'costo_unitario' ? 'Escribe el costo unitario de la compra.' : 'Escribe el precio unitario de la venta.', $campo);
+                }
+                return null;
+            }
+            $numero = filter_var($valor, FILTER_VALIDATE_FLOAT);
+            if ($numero === false || $numero < 0) {
+                responderError(400, 'Los importes deben ser números de 0 o más.', $campo);
+            }
+            return $numero;
+        };
+        $costo = $tipo === 'compra' ? $importe('costo_unitario', true) : null;
+        $precio = $tipo === 'venta' ? $importe('precio_unitario', true) : ($tipo === 'devolucion_cliente' ? $importe('precio_unitario', false) : null);
+        [$uuid, $rfc] = leerCfdi($data);
+        $nota = mb_substr(trim((string) ($data['nota'] ?? '')), 0, 255) ?: null;
+        exigirProductoVisible($pdo, $productoId, $actual);
+
+        $pdo->beginTransaction();
+        $stmt = $pdo->prepare("SELECT nombre, cantidad, costo_promedio FROM productos WHERE id = ? FOR UPDATE");
+        $stmt->execute([$productoId]);
+        $producto = $stmt->fetch();
+        cambiarExistencia($pdo, $productoId, $almacenId, $signo * $cantidad);
+        if ($tipo === 'compra') {
+            // Weighted average cost (LISR art. 41): what was on hand plus what just came in.
+            $previa = max(0, (int) $producto['cantidad']);
+            $promedio = $previa > 0
+                ? ($previa * (float) $producto['costo_promedio'] + $cantidad * $costo) / ($previa + $cantidad)
+                : $costo;
+            $pdo->prepare("UPDATE productos SET costo_promedio = ? WHERE id = ?")->execute([round($promedio, 4), $productoId]);
+        }
+        registrarMovimiento($pdo, $actual, $tipo, $productoId, $almacenId, $signo * $cantidad, [
+            'costo' => $costo, 'precio' => $precio, 'uuid' => $uuid, 'rfc' => $rfc, 'nota' => $nota,
+        ]);
+        $almacenNombre = $pdo->prepare("SELECT nombre FROM almacenes WHERE id = ?");
+        $almacenNombre->execute([$almacenId]);
+        $detalle = "Registró una $etiqueta de $cantidad «{$producto['nombre']}» en {$almacenNombre->fetchColumn()}";
+        if ($costo !== null) {
+            $detalle .= ' a $' . number_format($costo, 2) . ' c/u';
+        }
+        if ($precio !== null) {
+            $detalle .= ' a $' . number_format($precio, 2) . ' c/u';
+        }
+        $detalle .= $uuid ? " (CFDI $uuid)" : ' (sin CFDI)';
+        registrar($pdo, $actual, 'inventario', $detalle);
+        $pdo->commit();
+        echo json_encode(['mensaje' => 'Movimiento registrado']);
+    } elseif ($method === 'PUT' && $id) {
+        // Only the invoice data can be completed later; quantities and amounts are never edited.
+        $stmt = $pdo->prepare("SELECT tipo, producto_nombre, almacen_id, cfdi_uuid, rfc FROM movimientos_inventario WHERE id = ?");
+        $stmt->execute([$id]);
+        $movimiento = $stmt->fetch();
+        if (!$movimiento || !isset($tiposOperacion[$movimiento['tipo']])
+            || (!esAdmin($actual) && !puedeUsarAlmacen($actual, (int) $movimiento['almacen_id']))) {
+            responderError(404, 'Movimiento no encontrado.');
+        }
+        [$uuid, $rfc] = leerCfdi($data);
+        if (!$uuid) {
+            responderError(400, 'Escribe el folio fiscal (UUID) de la factura.', 'cfdi_uuid');
+        }
+        $pdo->beginTransaction();
+        $pdo->prepare("UPDATE movimientos_inventario SET cfdi_uuid = ?, rfc = ? WHERE id = ?")->execute([$uuid, $rfc, $id]);
+        $antes = ['UUID' => $movimiento['cfdi_uuid'], 'RFC' => $movimiento['rfc']];
+        registrar($pdo, $actual, 'inventario', "Agregó la factura a la {$tiposOperacion[$movimiento['tipo']][1]} de «{$movimiento['producto_nombre']}»"
+            . describirCambios($antes, ['UUID' => $uuid, 'RFC' => $rfc]));
+        $pdo->commit();
+        echo json_encode(['mensaje' => 'Factura agregada']);
+    }
+} elseif ($resource === 'valuacion' && $method === 'GET') {
+    requerirAdmin($actual);
+    $mes = preg_match('/^\d{4}-\d{2}$/', $_GET['mes'] ?? '') ? $_GET['mes'] : $pdo->query("SELECT DATE_FORMAT(NOW(), '%Y-%m')")->fetchColumn();
+    $productos = $pdo->query("
+        SELECT id, nombre, sku, cantidad, costo_promedio, ROUND(cantidad * costo_promedio, 2) AS valor
+        FROM productos ORDER BY nombre
+    ")->fetchAll();
+    // Sales leave with a negative cantidad, so -cantidad is the units sold.
+    $stmt = $pdo->prepare("
+        SELECT
+            COALESCE(SUM(CASE WHEN tipo = 'venta' THEN -cantidad * precio_unitario END), 0) AS ventas,
+            COALESCE(SUM(CASE WHEN tipo = 'devolucion_cliente' THEN cantidad * COALESCE(precio_unitario, 0) END), 0) AS devoluciones,
+            COALESCE(SUM(CASE WHEN tipo IN ('venta', 'devolucion_cliente') THEN -cantidad * costo_unitario END), 0) AS costo_vendido,
+            COALESCE(SUM(CASE WHEN tipo = 'compra' THEN cantidad * costo_unitario END), 0) AS compras,
+            COALESCE(SUM(tipo IN ('compra', 'venta', 'devolucion_cliente', 'devolucion_proveedor') AND cfdi_uuid IS NULL), 0) AS sin_cfdi
+        FROM movimientos_inventario
+        WHERE fecha >= ? AND fecha < ? + INTERVAL 1 MONTH
+    ");
+    $stmt->execute(["$mes-01", "$mes-01"]);
+    $periodo = array_map('floatval', $stmt->fetch());
+    echo json_encode([
+        'mes' => $mes,
+        'productos' => $productos,
+        'valor_inventario' => round(array_sum(array_column($productos, 'valor')), 2),
+        'ventas_netas' => round($periodo['ventas'] - $periodo['devoluciones'], 2),
+        'costo_vendido' => round($periodo['costo_vendido'], 2),
+        'utilidad_bruta' => round($periodo['ventas'] - $periodo['devoluciones'] - $periodo['costo_vendido'], 2),
+        'compras' => round($periodo['compras'], 2),
+        'sin_cfdi' => (int) $periodo['sin_cfdi'],
+    ]);
 } elseif ($resource === 'auditoria' && $method === 'GET') {
     requerirAdmin($actual);
     // ponytail: latest 500 entries, filtered in the browser; add server paging if the log outgrows that.
