@@ -6,8 +6,20 @@ $resource = $_GET['resource'] ?? null;
 $id = filter_var($_GET['id'] ?? null, FILTER_VALIDATE_INT) ?: null;
 $data = json_decode(file_get_contents('php://input'), true) ?: [];
 
-const MAX_INTENTOS = 5;
+const MAX_INTENTOS = 3;
 const MINUTOS_BLOQUEO = 5;
+
+// Reveals that the account exists, a trade-off accepted so the owner knows why they cannot get in.
+function responderBloqueo(int $minutos): void
+{
+    http_response_code(429);
+    echo json_encode([
+        'error' => "Tu cuenta fue bloqueada por seguridad tras " . MAX_INTENTOS . " intentos fallidos. "
+            . "Espera $minutos " . ($minutos === 1 ? 'minuto' : 'minutos') . " o pide a un administrador que te ponga una contraseña nueva.",
+        'bloqueado' => true,
+    ]);
+    exit;
+}
 
 function hayUsuarios(PDO $pdo): bool
 {
@@ -66,36 +78,41 @@ if ($resource === 'sesion') {
         $password = (string) ($data['password'] ?? '');
 
         $stmt = $pdo->prepare("
-            SELECT id, password_hash, activo, intentos_fallidos, bloqueado_hasta > NOW() AS bloqueado
+            SELECT id, password_hash, activo, intentos_fallidos,
+                CEIL(TIMESTAMPDIFF(SECOND, NOW(), bloqueado_hasta) / 60) AS minutos_bloqueo
             FROM usuarios WHERE usuario = ?
         ");
         $stmt->execute([$usuario]);
         $fila = $stmt->fetch();
+        // Failed attempts are logged under the name typed, linked to the account when it exists.
+        $intento = $fila ? ['id' => $fila['id'], 'usuario' => $usuario] : null;
 
-        if ($fila && $fila['bloqueado']) {
-            responderError(429, 'Demasiados intentos fallidos. Espera ' . MINUTOS_BLOQUEO . ' minutos e inténtalo de nuevo.');
+        // While locked the password is not even checked, so guessing during the lock is useless.
+        if ($fila && $fila['minutos_bloqueo'] > 0) {
+            registrar($pdo, $intento, 'sesion', 'Intento de inicio de sesión con la cuenta bloqueada');
+            responderBloqueo((int) $fila['minutos_bloqueo']);
         }
         // Unknown users still pay for a hash, so response time does not reveal which names exist.
         $hash = $fila['password_hash'] ?? password_hash('usuario-inexistente', PASSWORD_DEFAULT);
-        // Failed attempts are logged under the name typed, linked to the account when it exists.
-        $intento = $fila ? ['id' => $fila['id'], 'usuario' => $usuario] : null;
         if (!password_verify($password, $hash) || !$fila) {
-            $detalle = 'Intento fallido de inicio de sesión';
-            if ($fila) {
-                $intentos = $fila['intentos_fallidos'] + 1;
-                $bloquear = $intentos >= MAX_INTENTOS;
-                $pdo->prepare("
-                    UPDATE usuarios SET intentos_fallidos = ?,
-                        bloqueado_hasta = IF(?, NOW() + INTERVAL " . MINUTOS_BLOQUEO . " MINUTE, NULL)
-                    WHERE id = ?
-                ")->execute([$bloquear ? 0 : $intentos, $bloquear ? 1 : 0, $fila['id']]);
-                if ($bloquear) {
-                    $detalle .= '; el usuario quedó bloqueado ' . MINUTOS_BLOQUEO . ' minutos';
-                }
-            } else {
-                $detalle .= ' (ese usuario no existe)';
+            if (!$fila) {
+                registrar($pdo, null, 'sesion', 'Intento fallido de inicio de sesión: ese usuario no existe', $usuario);
+                responderError(401, 'Usuario o contraseña incorrectos.');
             }
-            registrar($pdo, $intento, 'sesion', $detalle, $usuario);
+            $intentos = $fila['intentos_fallidos'] + 1;
+            $bloquear = $intentos >= MAX_INTENTOS;
+            // The counter restarts with the lock, so after it expires there are MAX_INTENTOS fresh tries.
+            $pdo->prepare("
+                UPDATE usuarios SET intentos_fallidos = ?,
+                    bloqueado_hasta = IF(?, NOW() + INTERVAL " . MINUTOS_BLOQUEO . " MINUTE, NULL)
+                WHERE id = ?
+            ")->execute([$bloquear ? 0 : $intentos, $bloquear ? 1 : 0, $fila['id']]);
+            $detalle = "Contraseña incorrecta (intento $intentos de " . MAX_INTENTOS . ')';
+            if ($bloquear) {
+                registrar($pdo, $intento, 'sesion', "$detalle: cuenta bloqueada " . MINUTOS_BLOQUEO . ' minutos por seguridad');
+                responderBloqueo(MINUTOS_BLOQUEO);
+            }
+            registrar($pdo, $intento, 'sesion', $detalle);
             responderError(401, 'Usuario o contraseña incorrectos.');
         }
         // Only reached with the right password, so this message reveals nothing new.
