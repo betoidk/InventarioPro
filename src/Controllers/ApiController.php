@@ -95,10 +95,13 @@ function leerUbicaciones(array $data, array $usuario): ?array
 // Kárdex: every stock change is one row. cantidad is signed (+ enters, - leaves); a traslado stores the
 // amount moved from almacen_id to almacen_destino_id. The product's name and SKU are copied so the record
 // survives if the product is deleted later (CFF art. 30: records are kept five years).
-function registrarMovimiento(PDO $pdo, array $usuario, string $tipo, int $productoId, ?int $almacenId, int $cantidad, array $extra = []): void
+// The CFDI each operation should have: ingreso for purchases and sales, egreso for returns.
+const TIPO_CFDI = ['compra' => 'I', 'venta' => 'I', 'devolucion_cliente' => 'E', 'devolucion_proveedor' => 'E'];
+
+// Returns the new row's id.
+function registrarMovimiento(PDO $pdo, array $usuario, string $tipo, int $productoId, ?int $almacenId, int $cantidad, array $extra = []): int
 {
-    // The CFDI each operation should have: ingreso for purchases and sales, egreso for returns.
-    $cfdi = ['compra' => 'I', 'venta' => 'I', 'devolucion_cliente' => 'E', 'devolucion_proveedor' => 'E'][$tipo] ?? null;
+    $cfdi = TIPO_CFDI[$tipo] ?? null;
     $pdo->prepare("
         INSERT INTO movimientos_inventario
             (tipo, producto_id, producto_nombre, producto_sku, almacen_id, almacen_destino_id, cantidad,
@@ -110,6 +113,7 @@ function registrarMovimiento(PDO $pdo, array $usuario, string $tipo, int $produc
         $cfdi, $extra['uuid'] ?? null, $extra['rfc'] ?? null, $extra['nota'] ?? null,
         $usuario['id'], $usuario['usuario'], $productoId,
     ]);
+    return (int) $pdo->lastInsertId();
 }
 
 // Adds delta to one warehouse (never below 0) and refreshes the product total. Caller holds the transaction.
@@ -149,6 +153,64 @@ function leerCfdi(array $data): array
         responderError(400, 'El RFC tiene 12 caracteres si es empresa o 13 si es persona física.', 'rfc');
     }
     return [$uuid ?: null, $rfc ?: null];
+}
+
+// Invoice files: <movement id>.pdf and .xml, outside public/ (the root .htaccess blocks everything else).
+const CARPETA_FACTURAS = __DIR__ . '/../../storage/facturas';
+
+// Checks the optional PDF and XML uploads. Returns [[ext => tmp path], UUID, RFC]; UUID and RFC come from
+// the XML, so they don't have to be typed. The supplier issues purchase invoices and we issue sales, so the
+// counterpart's RFC is the Emisor's for supplier operations and the Receptor's for customer ones.
+function leerArchivosFactura(string $tipo): array
+{
+    $archivos = [];
+    foreach (['pdf' => 5, 'xml' => 1] as $ext => $megas) {
+        $archivo = $_FILES[$ext] ?? null;
+        if (!$archivo || $archivo['error'] === UPLOAD_ERR_NO_FILE) {
+            continue;
+        }
+        if ($archivo['error'] !== UPLOAD_ERR_OK || $archivo['size'] > $megas * 1024 * 1024) {
+            responderError(400, 'El ' . strtoupper($ext) . " no se pudo subir: debe pesar menos de $megas MB.", "factura_$ext");
+        }
+        $archivos[$ext] = $archivo['tmp_name'];
+    }
+    if (isset($archivos['pdf']) && file_get_contents($archivos['pdf'], false, null, 0, 5) !== '%PDF-') {
+        responderError(400, 'El archivo no es un PDF.', 'factura_pdf');
+    }
+    if (!isset($archivos['xml'])) {
+        return [$archivos, null, null];
+    }
+
+    $xml = new DOMDocument();
+    $timbre = @$xml->load($archivos['xml'], LIBXML_NONET)
+        ? $xml->getElementsByTagNameNS('http://www.sat.gob.mx/TimbreFiscalDigital', 'TimbreFiscalDigital')->item(0)
+        : null;
+    $comprobante = $xml->documentElement;
+    if (!$timbre || $comprobante->localName !== 'Comprobante') {
+        responderError(400, 'El XML no es un CFDI timbrado por el SAT.', 'factura_xml');
+    }
+    $esperado = TIPO_CFDI[$tipo];
+    if ($comprobante->getAttribute('TipoDeComprobante') !== $esperado) {
+        responderError(400, $esperado === 'I'
+            ? 'Ese XML no es un CFDI de ingreso (factura); revisa que sea el de esta operación.'
+            : 'Ese XML no es un CFDI de egreso (nota de crédito); revisa que sea el de esta devolución.', 'factura_xml');
+    }
+    $parte = in_array($tipo, ['compra', 'devolucion_proveedor'], true) ? 'Emisor' : 'Receptor';
+    $nodo = $comprobante->getElementsByTagNameNS($comprobante->namespaceURI, $parte)->item(0);
+    return [$archivos, strtoupper($timbre->getAttribute('UUID')), $nodo ? mb_strtoupper($nodo->getAttribute('Rfc')) : null];
+}
+
+// Caller holds the transaction: if a file can't be stored, the movement is rolled back with it.
+function guardarArchivosFactura(int $movimientoId, array $archivos): void
+{
+    if ($archivos && !is_dir(CARPETA_FACTURAS) && !mkdir(CARPETA_FACTURAS, 0770, true)) {
+        responderError(500, 'No se pudo guardar la factura en el servidor.');
+    }
+    foreach ($archivos as $ext => $temporal) {
+        if (!move_uploaded_file($temporal, CARPETA_FACTURAS . "/$movimientoId.$ext")) {
+            responderError(500, 'No se pudo guardar la factura en el servidor.');
+        }
+    }
 }
 
 // Writes only the warehouses received (already permission-checked); other warehouses' rows are never touched.
@@ -510,7 +572,8 @@ elseif ($resource === 'productos') {
         echo json_encode(['mensaje' => 'Stock redistribuido']);
     }
 } elseif ($resource === 'kardex') {
-    $data = json_decode(file_get_contents('php://input'), true) ?: [];
+    // Multipart when invoice files come along, JSON otherwise.
+    $data = $_POST ?: (json_decode(file_get_contents('php://input'), true) ?: []);
     $tiposOperacion = [
         // tipo => [sign, label]
         'compra' => [1, 'compra'],
@@ -518,7 +581,32 @@ elseif ($resource === 'productos') {
         'devolucion_cliente' => [1, 'devolución de cliente'],
         'devolucion_proveedor' => [-1, 'devolución a proveedor'],
     ];
-    if ($method === 'GET') {
+    // An invoiceable movement the user can see, or 404.
+    $movimientoConFactura = function (int $id) use ($pdo, $actual, $tiposOperacion): array {
+        $stmt = $pdo->prepare("SELECT tipo, producto_nombre, almacen_id, cfdi_uuid, rfc FROM movimientos_inventario WHERE id = ?");
+        $stmt->execute([$id]);
+        $movimiento = $stmt->fetch();
+        if (!$movimiento || !isset($tiposOperacion[$movimiento['tipo']])
+            || (!esAdmin($actual) && !puedeUsarAlmacen($actual, (int) $movimiento['almacen_id']))) {
+            responderError(404, 'Movimiento no encontrado.');
+        }
+        return $movimiento;
+    };
+    if ($method === 'GET' && $id) {
+        $movimiento = $movimientoConFactura((int) $id);
+        $ext = $_GET['archivo'] ?? '';
+        $ruta = CARPETA_FACTURAS . "/$id.$ext";
+        if (!in_array($ext, ['pdf', 'xml'], true) || !is_file($ruta)) {
+            responderError(404, 'Ese archivo no está guardado.');
+        }
+        // The PDF opens in the browser's viewer; the XML always downloads, so it is never rendered on this site.
+        header('Content-Type: ' . ($ext === 'pdf' ? 'application/pdf' : 'application/xml'));
+        header('Content-Disposition: ' . ($ext === 'pdf' ? 'inline' : 'attachment')
+            . '; filename="factura-' . ($movimiento['cfdi_uuid'] ?? $id) . ".$ext\"");
+        header('X-Content-Type-Options: nosniff');
+        header('Content-Length: ' . filesize($ruta));
+        readfile($ruta);
+    } elseif ($method === 'GET') {
         $mes = preg_match('/^\d{4}-\d{2}$/', $_GET['mes'] ?? '') ? $_GET['mes'] : $pdo->query("SELECT DATE_FORMAT(NOW(), '%Y-%m')")->fetchColumn();
         $sql = "SELECT m.id, m.fecha, m.tipo, m.producto_id, m.producto_nombre, m.producto_sku, m.almacen_id, a.nombre AS almacen,
                        m.almacen_destino_id, d.nombre AS almacen_destino, m.cantidad, m.costo_unitario, m.precio_unitario,
@@ -540,8 +628,12 @@ elseif ($resource === 'productos') {
         // ponytail: one month per page, capped at 1000 rows; add paging if a month ever exceeds that.
         $stmt = $pdo->prepare($sql . " ORDER BY m.fecha DESC, m.id DESC LIMIT 1000");
         $stmt->execute($params);
-        echo json_encode($stmt->fetchAll());
-    } elseif ($method === 'POST') {
+        $movimientos = array_map(fn ($m) => $m + [
+            'pdf' => is_file(CARPETA_FACTURAS . "/{$m['id']}.pdf"),
+            'xml' => is_file(CARPETA_FACTURAS . "/{$m['id']}.xml"),
+        ], $stmt->fetchAll());
+        echo json_encode($movimientos);
+    } elseif ($method === 'POST' && !$id) {
         exigirAlmacenesAsignados($actual);
         $tipo = $data['tipo'] ?? '';
         if (!isset($tiposOperacion[$tipo])) {
@@ -577,6 +669,12 @@ elseif ($resource === 'productos') {
         $costo = $tipo === 'compra' ? $importe('costo_unitario', true) : null;
         $precio = $tipo === 'venta' ? $importe('precio_unitario', true) : ($tipo === 'devolucion_cliente' ? $importe('precio_unitario', false) : null);
         [$uuid, $rfc] = leerCfdi($data);
+        [$archivos, $uuidXml, $rfcXml] = leerArchivosFactura($tipo);
+        if ($uuid && $uuidXml && $uuid !== $uuidXml) {
+            responderError(400, "El folio fiscal no coincide con el del XML ($uuidXml).", 'cfdi_uuid');
+        }
+        $uuid = $uuidXml ?? $uuid;
+        $rfc = $rfcXml ?? $rfc;
         $nota = mb_substr(trim((string) ($data['nota'] ?? '')), 0, 255) ?: null;
         exigirProductoVisible($pdo, $productoId, $actual);
 
@@ -593,7 +691,7 @@ elseif ($resource === 'productos') {
                 : $costo;
             $pdo->prepare("UPDATE productos SET costo_promedio = ? WHERE id = ?")->execute([round($promedio, 4), $productoId]);
         }
-        registrarMovimiento($pdo, $actual, $tipo, $productoId, $almacenId, $signo * $cantidad, [
+        $movimientoId = registrarMovimiento($pdo, $actual, $tipo, $productoId, $almacenId, $signo * $cantidad, [
             'costo' => $costo, 'precio' => $precio, 'uuid' => $uuid, 'rfc' => $rfc, 'nota' => $nota,
         ]);
         $almacenNombre = $pdo->prepare("SELECT nombre FROM almacenes WHERE id = ?");
@@ -606,27 +704,36 @@ elseif ($resource === 'productos') {
             $detalle .= ' a $' . number_format($precio, 2) . ' c/u';
         }
         $detalle .= $uuid ? " (CFDI $uuid)" : ' (sin CFDI)';
+        if ($archivos) {
+            $detalle .= ' con ' . implode(' y ', array_map('strtoupper', array_keys($archivos)));
+        }
         registrar($pdo, $actual, 'inventario', $detalle);
+        guardarArchivosFactura($movimientoId, $archivos);
         $pdo->commit();
         echo json_encode(['mensaje' => 'Movimiento registrado']);
-    } elseif ($method === 'PUT' && $id) {
-        // Only the invoice data can be completed later; quantities and amounts are never edited.
-        $stmt = $pdo->prepare("SELECT tipo, producto_nombre, almacen_id, cfdi_uuid, rfc FROM movimientos_inventario WHERE id = ?");
-        $stmt->execute([$id]);
-        $movimiento = $stmt->fetch();
-        if (!$movimiento || !isset($tiposOperacion[$movimiento['tipo']])
-            || (!esAdmin($actual) && !puedeUsarAlmacen($actual, (int) $movimiento['almacen_id']))) {
-            responderError(404, 'Movimiento no encontrado.');
-        }
+    } elseif ($method === 'POST' && $id) {
+        // Only the invoice can be completed later (POST, so PHP parses the files); quantities and amounts are never edited.
+        $movimiento = $movimientoConFactura((int) $id);
         [$uuid, $rfc] = leerCfdi($data);
+        [$archivos, $uuidXml, $rfcXml] = leerArchivosFactura($movimiento['tipo']);
+        $previo = $movimiento['cfdi_uuid'];
+        foreach ([$uuid, $previo] as $otro) {
+            if ($otro && $uuidXml && $otro !== $uuidXml) {
+                responderError(400, "Ese XML es de otra factura ($uuidXml); el folio de este movimiento es $otro.", 'factura_xml');
+            }
+        }
+        $uuid = $uuidXml ?? $uuid ?? $previo;
+        $rfc = $rfcXml ?? $rfc ?? $movimiento['rfc'];
         if (!$uuid) {
-            responderError(400, 'Escribe el folio fiscal (UUID) de la factura.', 'cfdi_uuid');
+            responderError(400, 'Escribe el folio fiscal (UUID) o sube el XML de la factura.', 'cfdi_uuid');
         }
         $pdo->beginTransaction();
         $pdo->prepare("UPDATE movimientos_inventario SET cfdi_uuid = ?, rfc = ? WHERE id = ?")->execute([$uuid, $rfc, $id]);
-        $antes = ['UUID' => $movimiento['cfdi_uuid'], 'RFC' => $movimiento['rfc']];
+        $antes = ['UUID' => $previo, 'RFC' => $movimiento['rfc']];
         registrar($pdo, $actual, 'inventario', "Agregó la factura a la {$tiposOperacion[$movimiento['tipo']][1]} de «{$movimiento['producto_nombre']}»"
-            . describirCambios($antes, ['UUID' => $uuid, 'RFC' => $rfc]));
+            . describirCambios($antes, ['UUID' => $uuid, 'RFC' => $rfc])
+            . ($archivos ? ' (' . implode(' y ', array_map('strtoupper', array_keys($archivos))) . ')' : ''));
+        guardarArchivosFactura((int) $id, $archivos);
         $pdo->commit();
         echo json_encode(['mensaje' => 'Factura agregada']);
     }

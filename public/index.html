@@ -16,51 +16,78 @@
       );
     </script>
     <style>
+      /* ORDINUM design system: editorial base from DESIGN.md (ink, paper, mist, peach; serif titles,
+         pill controls, 24px cards) + ORDINUM blue/green for actions and brand + red/orange/green for status. */
       :root {
-        --bg-primary: #ffffff;
-        --bg-secondary: #f5f5f7;
-        --text-primary: #1d1d1f;
-        --text-secondary: #6e6e73;
-        --border-color: rgba(229, 229, 234, 0.5);
-        /* Frosted glass for layers that float over content. */
-        --glass-bg: rgba(255, 255, 255, 0.72);
-        --glass-border: rgba(255, 255, 255, 0.6);
-        --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
-        --track: #e5e5ea;
-        /* Edge of tables and other surfaces that sit on the page color. */
-        --separator: #e5e5ea;
-        /* Text-safe colors: each one reaches 4.5:1 on this theme's surfaces. */
+        /* Surfaces */
+        --canvas: #ffffff;
+        --fog: #fafafb;
+        --mist: #f2f2f3;
+        --hairline: #e6e6e9;
+        --field-border: #c9cbd1;
+        /* Text: secondary is darker than DESIGN.md's #777b86 so it reaches 4.5:1 on white. */
+        --ink: #17191c;
+        --text-secondary: #6b6f7a;
+        --text-tertiary: #8a8d94;
+        /* Editorial accent: one warm card per page. */
+        --peach: #fbe1d1;
+        --sienna: #5d2a1a;
+        /* Brand: blue acts (trust, "do this"), green confirms (stock and money that is fine). */
+        --accent: #0071e3;
+        --accent-hover: #0062c5;
         --accent-text: #0066cc;
+        --brand-green: #34c759;
+        /* Status, text-safe on white: red stops, orange warns, green reassures, blue informs. */
         --danger-text: #c4001a;
+        --warning-text: #a35200;
         --success-text: #1e7a34;
         --info-text: #00639c;
         --focus-ring: #0066cc;
-        /* Brand blue: primary action and selected tab only. */
-        --accent: #0071e3;
-        /* Three radii and two shadows (the float one is --glass-shadow). */
-        --radius-control: 8px;
-        --radius-card: 12px;
-        --radius-pill: 999px;
-        --shadow-rest: 0 1px 3px rgba(0, 0, 0, 0.06);
+        /* Shape */
+        --r-card: 24px;
+        --r-floating: 20px;
+        --r-small: 16px;
+        --r-input: 16px;
+        --r-image: 12px;
+        --r-pill: 9999px;
+        /* Elevation: only floating layers (forms, toasts, popovers) get a shadow. */
+        --shadow-float: 0 0 0 1px rgba(4, 23, 43, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        --shadow-pop: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 24px rgba(0, 0, 0, 0.08);
+        --shadow-ring: 0 0 0 1px var(--hairline);
+        /* Type */
+        --font-serif: "Signifier", "Source Serif 4", "Iowan Old Style", Charter, Georgia, ui-serif, serif;
+        --font-sans: "Söhne", "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        --font-mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+        /* Names older code and inline styles still use. */
+        --bg-primary: var(--canvas);
+        --bg-secondary: var(--mist);
+        --text-primary: var(--ink);
+        --border-color: var(--hairline);
+        --track: #e6e6e9;
+        color-scheme: light;
       }
 
       [data-theme="dark"] {
-        --bg-primary: #1d1d1f;
-        --bg-secondary: #2a2a2c;
-        --text-primary: #f5f5f7;
-        --text-secondary: #a1a1a6;
-        --border-color: rgba(255, 255, 255, 0.1);
-        --glass-bg: rgba(44, 44, 46, 0.72);
-        --glass-border: rgba(255, 255, 255, 0.1);
-        --glass-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
-        --track: #3a3a3c;
-        --separator: #3a3a3c;
+        --canvas: #141517;
+        --fog: #18191c;
+        --mist: #222327;
+        --hairline: #2e2f34;
+        --field-border: #4a4c53;
+        --ink: #f2f2f3;
+        --text-secondary: #a3a6af;
+        --text-tertiary: #8a8d96;
+        --peach: #3a2419;
+        --sienna: #f7c9ad;
         --accent-text: #409cff;
         --danger-text: #ff6961;
+        --warning-text: #ffb340;
         --success-text: #30d158;
         --info-text: #64d2ff;
         --focus-ring: #409cff;
-        --shadow-rest: 0 1px 3px rgba(0, 0, 0, 0.3);
+        --shadow-float: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+        --shadow-pop: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 4px 24px rgba(0, 0, 0, 0.5);
+        --track: #2e2f34;
+        color-scheme: dark;
       }
 
       * {
@@ -70,54 +97,113 @@
       }
 
       body {
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial,
-          sans-serif;
-        background: var(--bg-primary);
-        color: var(--text-primary);
+        font-family: var(--font-sans);
+        font-size: 16px;
+        line-height: 1.5;
+        background: var(--canvas);
+        color: var(--ink);
         -webkit-font-smoothing: antialiased;
-        transition:
-          background 0.3s,
-          color 0.3s;
-        line-height: 1.6;
-        letter-spacing: -0.3px;
       }
 
+      [hidden] {
+        display: none !important;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--focus-ring);
+        outline-offset: 2px;
+      }
+
+      /* ── Type ── */
       h1,
-      h2,
-      h3 {
-        font-weight: 700;
-        letter-spacing: -0.5px;
-      }
-
-      h1 {
-        font-size: 2.2rem;
-        margin-bottom: 0.5rem;
-        line-height: 1.2;
+      h2 {
+        font-family: var(--font-serif);
+        font-weight: 400;
+        color: var(--ink);
       }
 
       h2 {
-        font-size: 1.6rem;
-        margin-bottom: 1rem;
-        line-height: 1.25;
-        font-weight: 700;
+        font-size: 2.75rem;
+        line-height: 1.15;
+        letter-spacing: -0.015em;
+      }
+
+      h3 {
+        font-size: 1.25rem;
+        font-weight: 500;
+        line-height: 1.3;
+        letter-spacing: -0.01em;
+      }
+
+      h4 {
+        font-size: 1rem;
+        font-weight: 500;
+      }
+
+      .eyebrow {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.25rem;
+      }
+
+      .ayuda {
+        margin-top: 0.375rem;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+      }
+
+      .icon {
+        width: 1.25em;
+        height: 1.25em;
+        display: inline-block;
+        flex-shrink: 0;
+        vertical-align: -0.25em;
+      }
+
+      /* ── Layout ── */
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+      }
+
+      /* Frosted glass only on the bars content scrolls under; cards and forms stay solid. */
+      .header,
+      .nav-tabs {
+        --glass: color-mix(in srgb, var(--canvas) 72%, transparent);
       }
 
       .header {
-        background: rgba(255, 255, 255, 0.55);
-        backdrop-filter: blur(30px) saturate(180%);
-        -webkit-backdrop-filter: blur(30px) saturate(180%);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.4);
-        padding: 1.5rem 0;
         position: sticky;
         top: 0;
         z-index: 10;
-        box-shadow: var(--shadow-rest);
+        background: var(--glass);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border-bottom: 1px solid var(--hairline);
+        padding: 1rem 0;
       }
 
-      [data-theme="dark"] .header {
-        background: rgba(29, 29, 31, 0.55);
-        border-bottom-color: rgba(255, 255, 255, 0.08);
+      /* System setting "reduce transparency" or "increase contrast": the bars turn solid. */
+      @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+        .header,
+        .nav-tabs {
+          --glass: var(--canvas);
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+        }
       }
 
       .header-content {
@@ -126,168 +212,194 @@
         align-items: center;
       }
 
+      .brand {
+        display: flex;
+        align-items: center;
+        margin: 0;
+      }
+
+      .brand .logo {
+        height: 1.75rem;
+        width: auto;
+        display: block;
+        color: var(--ink);
+      }
+
+      .header-acciones {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      /* Who is signed in: a quiet pill with an initial bubble. */
+      .usuario-actual {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.25rem 0.875rem 0.25rem 0.25rem;
+        border-radius: var(--r-pill);
+        background: var(--mist);
+        font-size: 0.875rem;
+        color: var(--ink);
+      }
+
+      .usuario-actual .icon {
+        width: 2rem;
+        height: 2rem;
+        padding: 0.375rem;
+        border-radius: 50%;
+        background: var(--canvas);
+        color: var(--accent-text);
+      }
+
       .theme-toggle {
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 1.5rem;
         width: 44px;
         height: 44px;
-        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--hairline);
         border-radius: 50%;
-        transition: background 0.2s;
+        background: none;
+        color: var(--ink);
+        cursor: pointer;
+        transition: background-color 150ms ease-out;
       }
 
       .theme-toggle:hover {
-        background: var(--bg-secondary);
+        background: var(--mist);
       }
 
-      .container {
-        max-width: 1300px;
-        margin: 0 auto;
-        padding: 0 2rem;
+      .theme-toggle .icon,
+      .close-btn .icon {
+        width: 22px;
+        height: 22px;
       }
 
+      /* Section tabs: pill links; the current one is the filled ink lozenge. */
       .nav-tabs {
         display: flex;
-        gap: 2.5rem;
-        margin: 0.5rem 0;
-        border-bottom: 1px solid var(--border-color);
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 1.5rem 0 0.5rem;
       }
 
       .nav-tab {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 1rem 0;
-        border: none;
+        min-height: 44px;
+        padding: 0 1.125rem;
+        border: 1px solid transparent;
+        border-radius: var(--r-pill);
         background: none;
-        cursor: pointer;
-        font-size: 1rem;
-        color: var(--text-secondary);
-        border-bottom: 3px solid transparent;
-        transition:
-          color 150ms ease-out,
-          border-color 150ms ease-out;
+        font: inherit;
+        font-size: 0.9375rem;
         font-weight: 500;
-        position: relative;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition:
+          background-color 150ms ease-out,
+          color 150ms ease-out;
       }
 
       .nav-tab .icon {
-        width: 1.15rem;
-        height: 1.15rem;
+        width: 1.125rem;
+        height: 1.125rem;
       }
 
       .nav-tab:hover {
-        color: var(--text-primary);
-      }
-
-      .nav-tab:active {
-        opacity: 0.7;
+        color: var(--ink);
+        background: var(--mist);
       }
 
       .nav-tab.active {
-        border-bottom-color: var(--accent);
-        color: var(--accent-text);
+        background: var(--ink);
+        color: var(--canvas);
       }
 
       .content {
         display: none;
-        padding: 2rem 0;
+        padding: 2rem 0 5rem;
       }
 
       .content.active {
         display: block;
       }
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        background: var(--bg-primary);
-        border-radius: var(--radius-card);
-        overflow: hidden;
-        /* A ring instead of a border: with border-collapse the border would ignore the rounded corners. */
-        box-shadow:
-          0 0 0 1px var(--separator),
-          var(--shadow-rest);
-        transition: background 0.3s;
+      /* Page header: eyebrow, serif title, one sentence, primary action on the right. */
+      .page-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
       }
 
-      th {
-        padding: 0.75rem 1rem;
-        text-align: left;
-        font-weight: 600;
+      .page-desc {
+        margin-top: 0.5rem;
+        max-width: 60ch;
+        font-size: 1.0625rem;
         color: var(--text-secondary);
-        border-bottom: 1px solid var(--border-color);
-        font-size: 0.8125rem;
       }
 
-      td {
-        padding: 0.75rem 1rem;
-        border-bottom: 1px solid var(--border-color);
-        color: var(--text-primary);
-        font-size: 0.95rem;
+      /* Search above a list: type to filter, the list still scrolls. */
+      .barra-lista {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.75rem 1rem;
+        margin-bottom: 1rem;
       }
 
-      tr:last-child td {
-        border-bottom: none;
+      .buscador {
+        position: relative;
+        flex: 0 1 26rem;
       }
 
-      tbody tr {
-        transition: background-color 150ms ease;
-        border-bottom: 1px solid var(--border-color);
+      .buscador .icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 1.125rem;
+        height: 1.125rem;
+        color: var(--text-secondary);
+        pointer-events: none;
       }
 
-      tbody tr:last-child {
-        border-bottom: none;
+      .buscador input {
+        padding-left: 2.75rem;
+        border-radius: var(--r-pill);
       }
 
-      tbody tr:hover {
-        background: var(--bg-secondary);
+      .conteo {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
       }
 
-      /* INLINE BUTTONS IN ACTIONS COLUMN */
-      td:last-child {
-        white-space: nowrap;
-      }
-
-      td:last-child .btn {
-        display: inline-flex;
-        justify-content: center;
-        width: 44px;
-        height: 44px;
-        padding: 0;
-        margin-right: 0.5rem;
-        vertical-align: middle;
-      }
-
-      td:last-child .btn:last-child {
-        margin-right: 0;
-      }
-
-      /* The hovered row takes --bg-secondary, the buttons' own color, so they switch to keep contrast. */
-      tbody tr:hover td:last-child .btn {
-        background: var(--bg-primary);
-      }
-
-      tbody tr:hover td:last-child .btn:hover {
-        background: var(--track);
-      }
-
-      /* MOBILE CARD LAYOUT */
+      /* ── Buttons ── */
       .btn {
-        padding: 0.75rem 1.25rem;
-        border: none;
-        border-radius: var(--radius-control);
-        cursor: pointer;
-        font-size: 0.95rem;
-        font-weight: 500;
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 0.5rem;
-        letter-spacing: -0.2px;
+        min-height: 44px;
+        padding: 0 1.25rem;
+        border: 1px solid transparent;
+        border-radius: var(--r-pill);
+        background: none;
+        font: inherit;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        color: var(--ink);
+        text-decoration: none;
+        cursor: pointer;
+        white-space: nowrap;
         transition:
           background-color 150ms ease-out,
+          border-color 150ms ease-out,
           transform 100ms ease-out;
       }
 
@@ -295,74 +407,194 @@
         transform: scale(0.97);
       }
 
+      .btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
       .btn-primary {
         background: var(--accent);
-        color: white;
+        color: #ffffff;
       }
 
       .btn-primary:hover {
-        background: #0077ed;
+        background: var(--accent-hover);
       }
 
-      .btn-primary:active {
-        background: #0062c5;
+      /* Ghost pill: the secondary action next to a primary one. */
+      .btn-edit,
+      .btn-secundario {
+        border-color: var(--ink);
+        color: var(--ink);
+      }
+
+      .btn-edit:hover,
+      .btn-secundario:hover {
+        background: var(--mist);
       }
 
       .btn-danger {
-        background: var(--bg-secondary);
+        border-color: color-mix(in srgb, var(--danger-text) 45%, transparent);
         color: var(--danger-text);
-        padding: 0.5rem 0.75rem;
-        font-size: 0.85rem;
       }
 
       .btn-danger:hover {
-        background: var(--border-color);
+        background: color-mix(in srgb, var(--danger-text) 8%, transparent);
       }
 
-      .btn-danger:active {
-        background: var(--border-color);
+      .btn-ancho {
+        width: 100%;
       }
 
-      .btn-edit {
-        background: var(--bg-secondary);
+      .link-btn {
+        background: none;
+        border: none;
+        padding: 0;
+        font: inherit;
         color: var(--accent-text);
-        padding: 0.6rem;
-        border-radius: var(--radius-control);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        cursor: pointer;
       }
 
-      .btn-edit:hover {
-        background: var(--border-color);
+      .close-btn {
+        position: absolute;
+        top: 1.25rem;
+        right: 1.25rem;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        border-radius: 50%;
+        background: var(--mist);
+        color: var(--ink);
+        cursor: pointer;
       }
 
+      .spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid color-mix(in srgb, currentColor 25%, transparent);
+        border-top-color: currentColor;
+        border-radius: 50%;
+        animation: spin 600ms linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* ── Forms ── */
+      /* Related things sit close (label 6px from its field), groups breathe (20px), sections more (28px). */
       .form-group {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1.25rem;
       }
 
       label {
         display: block;
-        margin-bottom: 0.75rem;
+        margin-bottom: 0.375rem;
+        font-size: 0.875rem;
         font-weight: 500;
-        color: var(--text-primary);
-        font-size: 0.95rem;
+        color: var(--ink);
+      }
+
+      .opcional {
+        font-weight: 400;
+        color: var(--text-secondary);
       }
 
       input,
       select,
       textarea {
         width: 100%;
-        padding: 0.875rem;
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-control);
-        font-family: inherit;
+        min-height: 48px;
+        padding: 0.75rem 1rem;
+        border: 1px solid var(--field-border);
+        border-radius: var(--r-input);
+        background: var(--canvas);
+        font: inherit;
         font-size: 1rem;
-        color: var(--text-primary);
+        color: var(--ink);
         transition:
           border-color 150ms ease-out,
           box-shadow 150ms ease-out;
-        background: var(--bg-primary);
       }
 
-      /* Eye button inside password fields. */
+      input::placeholder,
+      textarea::placeholder {
+        color: var(--text-tertiary);
+      }
+
+      input:focus,
+      select:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+      }
+
+      textarea {
+        min-height: 96px;
+        resize: vertical;
+      }
+
+      /* Dashed and tinted so it reads as "attach a file", not as a text field. Files can be dropped on it. */
+      input[type="file"] {
+        padding: 0.5rem;
+        border-style: dashed;
+        background: var(--fog);
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+      }
+
+      input[type="file"]::file-selector-button {
+        min-height: 32px;
+        margin-right: 0.75rem;
+        padding: 0 1rem;
+        border: 1px solid var(--ink);
+        border-radius: var(--r-pill);
+        background: var(--canvas);
+        font: inherit;
+        font-weight: 500;
+        color: var(--ink);
+        cursor: pointer;
+      }
+
+      [aria-invalid="true"] {
+        border-color: var(--danger-text) !important;
+      }
+
+      .fila-campos {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+
+      /* Money fields carry their unit, so nobody types "$" or wonders which currency. */
+      .campo-dinero {
+        position: relative;
+      }
+
+      .campo-dinero::before {
+        content: "$";
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-secondary);
+        pointer-events: none;
+      }
+
+      .campo-dinero input {
+        padding-left: 2rem;
+        font-variant-numeric: tabular-nums;
+      }
+
       .campo-password {
         position: relative;
       }
@@ -382,14 +614,14 @@
         align-items: center;
         justify-content: center;
         border: none;
-        border-radius: var(--radius-control);
+        border-radius: 50%;
         background: none;
         color: var(--text-secondary);
         cursor: pointer;
       }
 
       .ver-password:hover {
-        color: var(--text-primary);
+        color: var(--ink);
       }
 
       .ver-password .icon {
@@ -397,474 +629,12 @@
         height: 1.25rem;
       }
 
-      /* Edge draws its own eye; ours works in every browser, so hide the duplicate. */
       input::-ms-reveal {
         display: none;
       }
 
-      input:focus,
-      select:focus,
-      textarea:focus {
-        outline: none;
-        border-color: var(--accent);
-        box-shadow:
-          0 0 0 8px color-mix(in srgb, var(--accent) 10%, transparent),
-          inset 0 1px 2px rgba(0, 0, 0, 0.02);
-      }
-
-      textarea {
-        resize: vertical;
-        min-height: 100px;
-      }
-
-      .form-section {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        padding: 2.5rem;
-        border-radius: var(--radius-card);
-        max-width: 550px;
-        box-shadow:
-          0 16px 48px rgba(0, 0, 0, 0.08),
-          inset 0 1px 0 rgba(255, 255, 255, 0.6);
-      }
-
-      [data-theme="dark"] .form-section {
-        background: rgba(42, 42, 44, 0.6);
-        border-color: rgba(255, 255, 255, 0.1);
-        box-shadow:
-          0 16px 48px rgba(0, 0, 0, 0.3),
-          inset 0 1px 0 rgba(255, 255, 255, 0.08);
-      }
-
-      .form-section h3 {
-        margin-bottom: 1.5rem;
-        font-size: 1.25rem;
-      }
-
-      .empty-state {
-        text-align: center;
-        padding: 4rem 2rem;
-        color: var(--text-secondary);
-      }
-
-      .empty-state svg {
-        width: 64px;
-        height: 64px;
-        margin-bottom: 1rem;
-        opacity: 0.5;
-      }
-
-      .empty-state p {
-        font-size: 0.95rem;
-        margin-bottom: 1.5rem;
-      }
-
-      .color-badge {
-        display: inline-block;
-        width: 32px;
-        height: 32px;
-        border-radius: var(--radius-control);
-        vertical-align: middle;
-        border: 1px solid #e5e5ea;
-        box-shadow: var(--shadow-rest);
-      }
-
-      .icon-cell {
-        font-size: 1.5rem;
-        color: var(--accent);
-      }
-
-      /* FEEDBACK DE ÉXITO */
-      .success-toast {
-        position: fixed;
-        bottom: 2rem;
-        right: 2rem;
-        background: var(--glass-bg);
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        border: 1px solid var(--glass-border);
-        color: var(--text-primary);
-        padding: 1rem 1.5rem;
-        border-radius: var(--radius-card);
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        font-weight: 500;
-        box-shadow: var(--glass-shadow);
-        animation:
-          slideIn 300ms cubic-bezier(0.23, 1, 0.32, 1),
-          slideOut 300ms cubic-bezier(0.23, 1, 0.32, 1) 3700ms forwards;
-        z-index: 1000;
-      }
-
-      @keyframes slideIn {
-        from {
-          opacity: 0;
-          transform: translateY(16px) translateX(0);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0) translateX(0);
-        }
-      }
-
-      @keyframes slideOut {
-        to {
-          opacity: 0;
-          transform: translateY(16px) translateX(0);
-        }
-      }
-
-      .success-icon {
-        color: var(--success-text);
-        width: 20px;
-        height: 20px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        animation: checkmark 400ms cubic-bezier(0.23, 1, 0.32, 1) 100ms
-          backwards;
-      }
-
-      @keyframes checkmark {
-        0% {
-          opacity: 0;
-          transform: scale(0.5) rotate(-45deg);
-        }
-        100% {
-          opacity: 1;
-          transform: scale(1) rotate(0deg);
-        }
-      }
-
-      /* SPINNER DE CARGA */
-      .spinner {
-        width: 16px;
-        height: 16px;
-        border: 2px solid color-mix(in srgb, var(--accent) 20%, transparent);
-        border-top-color: var(--accent);
-        border-radius: 50%;
-        animation: spin 600ms linear infinite;
-      }
-
-      @keyframes spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        .success-toast,
-        .success-icon {
-          animation: none !important;
-          transition: none !important;
-          opacity: 1 !important;
-          transform: none !important;
-        }
-      }
-
-      .productos-layout {
-        display: flex;
-        gap: 2rem;
-        margin-top: 2rem;
-      }
-
-      /* min-width: 0 lets the table column shrink; past that the table scrolls in its own box, never the page. */
-      .productos-tabla {
-        flex: 1;
-        min-width: 0;
-      }
-
-      @media (min-width: 769px) {
-        .productos-tabla {
-          overflow-x: auto;
-        }
-      }
-
-      /* Tighter cells so the eight columns fit beside the sidebar (the container tops out at 1300px). */
-      @media (min-width: 769px) {
-        #productos-table th,
-        #productos-table td {
-          padding-left: 0.75rem;
-          padding-right: 0.75rem;
-        }
-      }
-
-      /* Resumen de stock: one surface; totals and alerts are rows split by hairlines. */
-      #dashboard-stock {
-        width: 320px;
-        background: var(--bg-secondary);
-        padding: 1.25rem 1.5rem;
-        border-radius: var(--radius-card);
-        height: fit-content;
-        position: sticky;
-        top: 100px;
-      }
-
-      #dashboard-stock h3 {
-        font-size: 1.1rem;
-        margin-bottom: 0.25rem;
-      }
-
-      #dashboard-stock h4 {
-        font-size: 1rem;
-        margin: 1.25rem 0 0.25rem;
-      }
-
-      .resumen-totales div {
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid var(--border-color);
-      }
-
-      .resumen-totales dt {
-        color: var(--text-secondary);
-        font-size: 0.95rem;
-      }
-
-      .resumen-totales dd {
-        font-size: 1.25rem;
-        font-weight: 700;
-        font-variant-numeric: tabular-nums;
-      }
-
-      .dato-bajo {
-        color: var(--danger-text);
-      }
-
-      .dato-alto {
-        color: var(--success-text);
-      }
-
-      .alertas {
-        list-style: none;
-        max-height: 300px;
-        overflow-y: auto;
-      }
-
-      .alertas li {
-        padding: 0.75rem 0;
-        border-top: 1px solid var(--border-color);
-        font-size: 0.9rem;
-      }
-
-      .alertas li:first-child {
-        border-top: none;
-      }
-
-      .alerta-nombre {
-        font-weight: 600;
-        gap: 0.5rem;
-      }
-
-      .alerta-detalle,
-      .alerta-vacia {
-        color: var(--text-secondary);
-        font-size: 0.85rem;
-      }
-
-      .alerta-detalle {
-        margin-top: 0.25rem;
-      }
-
-      .alerta-accion {
-        font-weight: 600;
-      }
-
-      .alerta-accion.bajo {
-        color: var(--danger-text);
-      }
-
-      .alerta-accion.alto {
-        color: var(--success-text);
-      }
-
-      /* Below ~1240px the table (~820px) plus the 320px sidebar do not fit: the dashboard moves on top, stats in a row. */
-      @media (max-width: 1240px) {
-        .productos-layout {
-          flex-direction: column;
-        }
-        #dashboard-stock {
-          width: 100% !important;
-          position: static !important;
-          order: -1;
-        }
-      }
-
-      /* SPINNER EN BOTONES */
-      .btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-      }
-
-      .btn-loading {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-      /* Reicon icons carry their own fill/stroke attributes, so this class only sizes them. */
-      .icon {
-        width: 1.25em;
-        height: 1.25em;
-        display: inline-block;
-        flex-shrink: 0;
-        vertical-align: -0.25em;
-        transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1);
-      }
-
-      button:active .icon {
-        transform: scale(0.92);
-      }
-
-      .brand {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        margin-bottom: 0;
-      }
-
-      /* Wordmark strokes use currentColor, so the logo follows the theme. */
-      .brand .logo {
-        height: 1.75rem;
-        width: auto;
-        display: block;
-      }
-
-      .theme-toggle {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-primary);
-      }
-
-      .close-btn {
-        position: absolute;
-        top: 1.5rem;
-        right: 1.5rem;
-        width: 44px;
-        height: 44px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        border: none;
-        background: none;
-        color: var(--text-secondary);
-        cursor: pointer;
-      }
-
-      .sku {
-        background: var(--bg-secondary);
-        padding: 0.25rem 0.5rem;
-        border-radius: var(--radius-control);
-        font-size: 0.85rem;
-      }
-
-      .estado-stock {
-        display: inline-block;
-        padding: 0.3rem 0.75rem;
-        border: 1.5px solid var(--c);
-        border-radius: var(--radius-pill);
-        background: color-mix(in srgb, var(--c) 12%, transparent);
-        color: var(--c);
-        font-size: 0.85rem;
-        font-weight: 600;
-        white-space: nowrap;
-      }
-
-      .vacio {
-        text-align: center;
-        padding: 3rem 1rem;
-        color: var(--text-secondary);
-      }
-
-      .sin-dato {
-        color: var(--text-secondary);
-      }
-
-      .margen {
-        font-weight: 600;
-      }
-
-      .margen.negativo {
-        color: var(--danger-text);
-      }
-
-      .tabla-separada {
-        margin-top: 1.5rem;
-      }
-
-      .theme-toggle .icon,
-      .close-btn .icon {
-        width: 22px;
-        height: 22px;
-      }
-
-      .success-icon .icon {
-        width: 100%;
-        height: 100%;
-      }
-
-      /* ICONO DE CATEGORÍA */
-      .cat-name {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.75rem;
-      }
-
-      .cat-tile {
-        width: 36px;
-        height: 36px;
-        border-radius: var(--radius-control);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-      }
-
-      .cat-tile .icon {
-        width: 20px;
-        height: 20px;
-      }
-
-      .cat-tile.sm {
-        width: 28px;
-        height: 28px;
-        border-radius: var(--radius-control);
-      }
-
-      .cat-tile.sm .icon {
-        width: 16px;
-        height: 16px;
-      }
-
-      [hidden] {
-        display: none !important;
-      }
-
-      .sr-only {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-      }
-
-      /* One visible focus ring for every control; inputs keep their own glow. */
-      :focus-visible {
-        outline: 2px solid var(--focus-ring);
-        outline-offset: 2px;
-      }
-
-      fieldset.form-group {
+      fieldset.form-group,
+      fieldset.paso {
         border: 0;
         padding: 0;
         margin-left: 0;
@@ -876,16 +646,15 @@
         display: block;
         padding: 0;
         margin-bottom: 0.75rem;
+        font-size: 0.875rem;
         font-weight: 500;
-        font-size: 0.95rem;
-        color: var(--text-primary);
+        color: var(--ink);
       }
 
       .form-error {
         margin: 0 0 1rem;
         padding: 0.75rem 1rem;
-        border-radius: var(--radius-control);
-        border: 1px solid var(--danger-text);
+        border-radius: var(--r-small);
         background: color-mix(in srgb, var(--danger-text) 10%, transparent);
         color: var(--danger-text);
         font-size: 0.9rem;
@@ -903,98 +672,26 @@
       .aviso-bloqueo .icon {
         width: 1.1rem;
         height: 1.1rem;
-        flex-shrink: 0;
       }
 
-      [aria-invalid="true"] {
-        border-color: var(--danger-text) !important;
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        *,
-        *::before,
-        *::after {
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
-          transition-duration: 0.01ms !important;
-        }
-
-        .btn-primary:hover {
-          transform: none;
-        }
-
-        /* Loading feedback stays: a small spinner is not vestibular motion. */
-        .spinner {
-          animation-duration: 600ms !important;
-          animation-iteration-count: infinite !important;
-        }
-      }
-
-      /* ACCESO */
-      .acceso {
-        min-height: 100dvh;
-        display: grid;
-        place-items: center;
-        padding: 1.5rem 1rem;
-        /* Soft color glow so the glass card has something to show through. */
-        background:
-          radial-gradient(36rem 28rem at 15% 15%, rgba(0, 113, 227, 0.22), transparent 70%),
-          radial-gradient(32rem 28rem at 85% 85%, rgba(52, 199, 89, 0.18), transparent 70%),
-          var(--bg-primary);
-      }
-
-      .acceso-tarjeta {
-        width: 100%;
-        max-width: 400px;
+      /* A form opens as a floating sheet over the page. */
+      .form-section {
+        position: relative;
+        max-width: 640px;
+        margin: 0 0 2rem;
         padding: 2rem;
-        background: var(--glass-bg);
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        border: 1px solid var(--glass-border);
-        border-radius: var(--radius-card);
-        box-shadow: var(--glass-shadow);
+        border-radius: var(--r-card);
+        background: var(--canvas);
+        box-shadow: var(--shadow-float);
       }
 
-      .acceso-marca {
-        font-size: 1.25rem;
-        font-weight: 700;
-        margin-bottom: 1.5rem;
+      [data-theme="dark"] .form-section {
+        background: var(--mist);
       }
 
-      .acceso h1 {
-        font-size: 1.5rem;
-        margin-bottom: 1.25rem;
-      }
-
-      .btn-ancho {
-        width: 100%;
-        justify-content: center;
-      }
-
-      .ayuda {
-        margin-top: 0.4rem;
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-      }
-
-      /* Hidden for non-admins. The API enforces the same rules; this only tidies the UI. */
-      body:not(.es-admin) .solo-admin {
-        display: none !important;
-      }
-
-      .header-acciones {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-      }
-
-      .usuario-actual {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        margin-right: 0.5rem;
-        font-size: 0.9rem;
-        color: var(--text-secondary);
+      .form-section > h3 {
+        font-size: 1.375rem;
+        margin: 0 3.5rem 1.25rem 0;
       }
 
       .check-lista {
@@ -1006,134 +703,520 @@
       .check-fila {
         display: flex;
         align-items: center;
-        gap: 0.6rem;
+        gap: 0.625rem;
         min-height: 44px;
         margin: 0;
+        padding: 0 0.75rem;
+        border-radius: var(--r-small);
+        background: var(--mist);
+        font-size: 0.9375rem;
         font-weight: 400;
       }
 
       .check-fila input {
         width: 20px;
         height: 20px;
+        min-height: 0;
         padding: 0;
-        flex-shrink: 0;
         accent-color: var(--accent);
       }
 
-      .estado-usuario {
-        display: inline-block;
-        padding: 0.3rem 0.75rem;
-        border-radius: var(--radius-pill);
-        font-size: 0.85rem;
-        font-weight: 600;
-        white-space: nowrap;
-      }
-
-      .estado-usuario.activo {
-        color: var(--success-text);
-        background: color-mix(in srgb, var(--success-text) 12%, transparent);
-      }
-
-      .estado-usuario.baja {
-        color: var(--text-secondary);
-        background: var(--track);
-      }
-
-      .filtros-actividad {
+      /* ── Steps for long forms ── */
+      .pasos {
         display: flex;
         flex-wrap: wrap;
-        gap: 1rem;
-        margin: 1.25rem 0 1rem;
-      }
-
-      .filtros-actividad .form-group {
-        flex: 1 1 14rem;
-        margin-bottom: 0;
-      }
-
-      .filtros-actividad .form-group:last-child {
-        flex: 0 1 12rem;
-      }
-
-      #actividad-table td:first-child {
-        white-space: nowrap;
-        font-variant-numeric: tabular-nums;
-      }
-
-      /* Edits list every change, so the detail wraps instead of running off the card. */
-      #actividad-table td:last-child {
-        white-space: normal;
-        overflow-wrap: anywhere;
-      }
-
-      /* Kárdex */
-      #valuacion {
-        margin: 1.5rem 0;
-      }
-
-      #valuacion h3 {
-        font-size: 1.1rem;
-        margin-bottom: 0.25rem;
-      }
-
-      #valuacion .kpi-row {
-        margin: 1rem 0;
-      }
-
-      #valuacion .kpi-value {
-        font-size: 1.5rem;
-      }
-
-      .aviso-cfdi {
-        color: var(--danger-text);
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
-      }
-
-      .valor-productos summary {
-        cursor: pointer;
-        font-weight: 600;
+        gap: 0.5rem;
+        list-style: none;
         margin-bottom: 0.75rem;
       }
 
-      @media (min-width: 769px) {
-        .tabla-desplazable {
-          overflow-x: auto;
-        }
+      .pasos button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        min-height: 40px;
+        padding: 0.25rem 0.875rem 0.25rem 0.25rem;
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-pill);
+        background: none;
+        font: inherit;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        cursor: pointer;
       }
 
-      #kardex-table td:first-child {
-        white-space: nowrap;
+      .pasos-num {
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: var(--mist);
+        color: var(--ink);
+        font-size: 0.8125rem;
         font-variant-numeric: tabular-nums;
       }
 
-      .cantidad-mov {
-        font-weight: 600;
-        font-variant-numeric: tabular-nums;
+      .pasos .actual button {
+        border-color: var(--ink);
+        color: var(--ink);
+      }
+
+      .pasos .actual .pasos-num {
+        background: var(--accent);
+        color: #ffffff;
+      }
+
+      .pasos .hecho .pasos-num {
+        background: color-mix(in srgb, var(--success-text) 16%, transparent);
+        color: var(--success-text);
+      }
+
+      .pasos-barra {
+        height: 6px;
+        border-radius: var(--r-pill);
+        background: var(--mist);
+        overflow: hidden;
+      }
+
+      .pasos-barra span {
+        display: block;
+        height: 100%;
+        border-radius: var(--r-pill);
+        background: var(--accent);
+        transition: width 200ms ease-out;
+      }
+
+      .pasos-estado {
+        margin: 0.5rem 0 1.5rem;
+        font-size: 0.8125rem;
+        color: var(--text-secondary);
+      }
+
+      /* The stepper already shows the step name; the legend stays for screen readers. */
+      .paso > legend {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
         white-space: nowrap;
+      }
+
+      .pasos-acciones {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+      }
+
+      /* ── Tables: a white sheet with a hairline edge ── */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--canvas);
+        border-radius: var(--r-floating);
+        overflow: hidden;
+        box-shadow: var(--shadow-ring);
+      }
+
+      th {
+        padding: 0.75rem 1rem;
+        background: var(--fog);
+        border-bottom: 1px solid var(--hairline);
+        text-align: left;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+      }
+
+      td {
+        padding: 0.875rem 1rem;
+        border-bottom: 1px solid var(--hairline);
+        font-size: 0.9375rem;
+        color: var(--ink);
+      }
+
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      tbody tr {
+        transition: background-color 150ms ease-out;
+      }
+
+      tbody tr:hover {
+        background: var(--fog);
+      }
+
+      td:last-child {
+        white-space: nowrap;
+      }
+
+      /* Icon actions in a row: 40px circles, edit in blue, delete in red. */
+      td .btn:not(.btn-texto) {
+        width: 40px;
+        min-height: 40px;
+        height: 40px;
+        padding: 0;
+        margin-right: 0.375rem;
+        border: none;
+        border-radius: 50%;
+        background: var(--mist);
+        vertical-align: middle;
+      }
+
+      td .btn.btn-edit:not(.btn-texto) {
+        color: var(--accent-text);
+      }
+
+      td .btn:not(.btn-texto):hover {
+        background: var(--hairline);
+      }
+
+      td .btn:last-child {
+        margin-right: 0;
+      }
+
+      td .btn.btn-texto {
+        min-height: 36px;
+        padding: 0 0.875rem;
+        font-size: 0.875rem;
+      }
+
+      .tabla-separada {
+        margin-top: 0;
+      }
+
+      .vacio {
+        padding: 3rem 1rem;
+        text-align: center;
+        color: var(--text-secondary);
+      }
+
+      .sin-dato {
+        color: var(--text-secondary);
+      }
+
+      .sku {
+        padding: 0.125rem 0.5rem;
+        border-radius: 8px;
+        background: var(--mist);
+        font-family: var(--font-mono);
+        font-size: 0.8125rem;
+      }
+
+      .margen {
+        font-weight: 500;
+        color: var(--success-text);
+      }
+
+      .margen.negativo {
+        color: var(--danger-text);
       }
 
       .rfc {
         display: block;
-        color: var(--text-secondary);
+        margin-top: 0.125rem;
         font-size: 0.8rem;
+        color: var(--text-secondary);
       }
 
-      /* Failed logins and similar warnings stand out in the log. */
-      .actividad-alerta {
+      .factura-archivos {
+        display: flex;
+        gap: 0.375rem;
+        margin-top: 0.375rem;
+      }
+
+      .factura-archivos:empty {
+        display: none;
+      }
+
+      .cantidad-mov {
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      @media (min-width: 769px) {
+        .tabla-desplazable,
+        .productos-tabla {
+          overflow-x: auto;
+        }
+      }
+
+      /* Status pill: tinted fill, dot and text all in the status color (never color alone: the text names it). */
+      .estado-stock,
+      .estado-usuario {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: var(--r-pill);
+        background: color-mix(in srgb, var(--c) 12%, transparent);
+        color: var(--c);
+        font-size: 0.8125rem;
+        font-weight: 500;
+        white-space: nowrap;
+      }
+
+      .estado-stock::before,
+      .estado-usuario::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      .estado-usuario.activo {
+        --c: var(--success-text);
+      }
+
+      .estado-usuario.baja {
+        --c: var(--text-secondary);
+      }
+
+      .cat-name {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.625rem;
+      }
+
+      .cat-tile {
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border-radius: var(--r-image);
+      }
+
+      .cat-tile .icon {
+        width: 20px;
+        height: 20px;
+      }
+
+      .cat-tile.sm {
+        width: 28px;
+        height: 28px;
+        border-radius: 10px;
+      }
+
+      .cat-tile.sm .icon {
+        width: 16px;
+        height: 16px;
+      }
+
+      .color-badge {
+        display: inline-block;
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        vertical-align: middle;
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+      }
+
+      .cant {
+        display: flex;
+        flex-direction: column;
+        gap: 0.125rem;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .ubic {
+        font-size: 0.8rem;
+        line-height: 1.4;
+        color: var(--text-secondary);
+        white-space: nowrap;
+      }
+
+      .ubic summary {
+        cursor: pointer;
+      }
+
+      /* ── Productos ── */
+      .productos-layout {
+        display: flex;
+        gap: 1.5rem;
+        align-items: flex-start;
+      }
+
+      .productos-tabla {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* Stock summary: the page's one warm editorial card. */
+      #dashboard-stock {
+        width: 320px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 88px;
+        padding: 1.5rem;
+        border-radius: var(--r-card);
+        background: var(--peach);
+        color: var(--sienna);
+      }
+
+      #dashboard-stock h3 {
+        color: var(--sienna);
+        margin-bottom: 0.5rem;
+      }
+
+      #dashboard-stock h4 {
+        margin: 1.5rem 0 0.25rem;
+        color: var(--sienna);
+      }
+
+      .resumen-totales div {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid color-mix(in srgb, var(--sienna) 15%, transparent);
+      }
+
+      .resumen-totales dt {
+        font-size: 0.9375rem;
+      }
+
+      .resumen-totales dd {
+        font-size: 1.375rem;
+        font-weight: 500;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .dato-bajo {
         color: var(--danger-text);
       }
 
-      td:last-child .btn.btn-texto {
-        width: auto;
-        padding: 0 0.9rem;
+      .dato-alto {
+        color: var(--success-text);
       }
 
-      /* ALMACÉN */
-      .almacen-nota {
-        color: var(--text-secondary);
-        font-size: 0.95rem;
+      .alertas {
+        list-style: none;
+        max-height: 320px;
+        overflow-y: auto;
+      }
+
+      .alertas li {
+        padding: 0.75rem 0;
+        border-top: 1px solid color-mix(in srgb, var(--sienna) 15%, transparent);
+        font-size: 0.9rem;
+      }
+
+      .alertas li:first-child {
+        border-top: none;
+      }
+
+      .alerta-nombre {
+        font-weight: 500;
+      }
+
+      .alerta-detalle,
+      .alerta-vacia {
+        font-size: 0.85rem;
+        color: color-mix(in srgb, var(--sienna) 85%, transparent);
+      }
+
+      .alerta-detalle {
+        margin-top: 0.25rem;
+      }
+
+      .alerta-accion {
+        font-weight: 500;
+      }
+
+      .alerta-accion.bajo {
+        color: var(--danger-text);
+      }
+
+      .alerta-accion.alto {
+        color: var(--success-text);
+      }
+
+      #dashboard-stock .link-btn {
+        color: var(--sienna);
+      }
+
+      @media (max-width: 1240px) {
+        .productos-layout {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        #dashboard-stock {
+          width: 100%;
+          position: static;
+          order: -1;
+        }
+      }
+
+      /* ── KPI and content cards ── */
+      .kpi-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
         margin-bottom: 1.5rem;
+      }
+
+      .kpi,
+      .almacen-card {
+        padding: 1.25rem 1.5rem;
+        border-radius: var(--r-card);
+        background: var(--mist);
+      }
+
+      .kpi-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+      }
+
+      .kpi-label .icon {
+        width: 2rem;
+        height: 2rem;
+        padding: 0.4rem;
+        border-radius: 50%;
+        background: var(--canvas);
+        color: var(--accent-text);
+      }
+
+      .kpi-value {
+        margin-top: 0.75rem;
+        font-size: 1.875rem;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        line-height: 1.2;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .kpi-sub {
+        font-size: 0.85rem;
+        font-weight: 400;
+        letter-spacing: 0;
+        color: var(--text-secondary);
+      }
+
+      .almacen-card {
+        margin-bottom: 1.5rem;
+      }
+
+      .almacen-card h3 {
+        margin-bottom: 1rem;
+      }
+
+      .almacen-nota {
+        margin-bottom: 1.5rem;
+        font-size: 0.9375rem;
+        color: var(--text-secondary);
       }
 
       .almacen-head {
@@ -1149,67 +1232,23 @@
         margin-bottom: 0;
       }
 
-      .kpi-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-      }
-
-      .kpi,
-      .almacen-card {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-card);
-        padding: 1.25rem 1.5rem;
-      }
-
-      .kpi-label {
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-      }
-
-      .kpi-value {
-        font-size: 2rem;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-        line-height: 1.2;
-        margin-top: 0.25rem;
-        font-variant-numeric: tabular-nums;
-      }
-
-      .kpi-sub {
-        color: var(--text-secondary);
-        font-size: 0.85rem;
-        font-weight: 400;
-        letter-spacing: 0;
-      }
-
-      .almacen-card {
-        margin-bottom: 1.5rem;
-      }
-
-      .almacen-card h3 {
-        font-size: 1.1rem;
-        margin-bottom: 1rem;
-      }
-
       .alm-encabezado,
       .alm-fila {
         display: grid;
-        grid-template-columns: 1fr 112px 44px;
+        grid-template-columns: 1fr 120px 44px;
         gap: 0.5rem;
         align-items: center;
       }
 
       .alm-encabezado {
-        font-size: 0.85rem;
+        margin-bottom: 0.375rem;
+        font-size: 0.8125rem;
         font-weight: 500;
         color: var(--text-secondary);
-        margin-bottom: 0.5rem;
       }
 
-      .alm-lista {
+      .alm-lista,
+      .ubic-lista {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
@@ -1218,9 +1257,10 @@
 
       .alm-fila .btn {
         width: 44px;
-        height: 44px;
         padding: 0;
-        justify-content: center;
+        border: none;
+        border-radius: 50%;
+        background: var(--mist);
       }
 
       .alm-fila .btn:disabled {
@@ -1228,72 +1268,28 @@
       }
 
       .alm-total {
-        margin: 1rem 0 1.5rem;
+        margin: 0.75rem 0 1.25rem;
         color: var(--text-secondary);
       }
 
       .alm-total strong {
-        color: var(--text-primary);
+        color: var(--ink);
         font-variant-numeric: tabular-nums;
       }
 
       .alm-acciones {
         display: flex;
-        gap: 0.5rem;
-      }
-
-      .redistribuir {
-        margin-top: 1rem;
-        padding: 1rem;
-        border-radius: var(--radius-card);
-        border: 1px solid color-mix(in srgb, #ff9500 40%, transparent);
-        background: color-mix(in srgb, #ff9500 8%, transparent);
-        font-size: 0.9rem;
-      }
-
-      .redistribuir .alm-estado {
-        align-items: flex-start;
-      }
-
-      .redistribuir p {
-        margin: 0.5rem 0 0;
-        color: var(--text-secondary);
-      }
-
-      .redistribuir .btn {
-        margin-top: 1rem;
-      }
-
-      .redistribuir ul {
-        margin: 0.5rem 0 0;
-        padding-left: 1.25rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.35rem;
-      }
-
-      .link-btn {
-        background: none;
-        border: none;
-        padding: 0;
-        font: inherit;
-        color: var(--accent-text);
-        text-decoration: underline;
-        cursor: pointer;
-      }
-
-      .ubic-lista {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
+        flex-wrap: wrap;
+        gap: 0.75rem;
       }
 
       .ubic-fila {
         display: grid;
-        grid-template-columns: 1fr 112px;
+        grid-template-columns: 1fr 120px;
         gap: 0.75rem;
         align-items: center;
         margin: 0;
+        font-size: 0.9375rem;
         font-weight: 400;
       }
 
@@ -1303,44 +1299,56 @@
         white-space: nowrap;
       }
 
-      .cant {
-        display: flex;
-        flex-direction: column;
-        gap: 0.2rem;
-      }
-
-      .ubic {
-        font-size: 0.8rem;
-        line-height: 1.4;
-        color: var(--text-secondary);
-        white-space: nowrap;
-      }
-
-      .ubic summary {
-        cursor: pointer;
-      }
-
       .alm-estado {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        font-weight: 600;
-        font-size: 0.9rem;
         margin-bottom: 0.75rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+
+      /* Warning callout on the warehouse page: warm, like the stock summary. */
+      .redistribuir {
+        margin-top: 1rem;
+        padding: 1.25rem 1.5rem;
+        border-radius: var(--r-card);
+        background: var(--peach);
+        color: var(--sienna);
+        font-size: 0.9375rem;
+      }
+
+      .redistribuir .alm-estado {
+        align-items: flex-start;
+      }
+
+      .redistribuir p {
+        margin: 0.5rem 0 0;
+      }
+
+      .redistribuir ul {
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+        margin: 0.5rem 0 0;
+        padding-left: 1.25rem;
+      }
+
+      .redistribuir .btn {
+        margin-top: 1rem;
       }
 
       .meter {
         display: flex;
         height: 28px;
-        border-radius: var(--radius-pill);
+        border-radius: var(--r-pill);
         overflow: hidden;
         background: var(--track);
       }
 
-      /* 2px surface gap between segments */
       .meter-seg {
         height: 100%;
-        box-shadow: inset -2px 0 0 var(--bg-secondary);
+        box-shadow: inset -2px 0 0 var(--mist);
       }
 
       .meter-free {
@@ -1363,7 +1371,7 @@
       }
 
       .meter-labels strong {
-        color: var(--text-primary);
+        color: var(--ink);
         font-variant-numeric: tabular-nums;
       }
 
@@ -1373,7 +1381,7 @@
         align-items: center;
         gap: 1rem;
         padding: 0.75rem 0;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--hairline);
       }
 
       .cat-row:last-child {
@@ -1382,64 +1390,105 @@
 
       .cat-bar {
         height: 10px;
-        border-radius: var(--radius-pill);
-        background: var(--track);
+        border-radius: var(--r-pill);
+        background: var(--canvas);
         overflow: hidden;
       }
 
       .cat-bar span {
         display: block;
         height: 100%;
-        border-radius: var(--radius-pill);
+        border-radius: var(--r-pill);
       }
 
       .cat-pct {
-        font-weight: 700;
+        font-weight: 500;
         text-align: right;
         font-variant-numeric: tabular-nums;
       }
 
       .cat-cajas {
-        color: var(--text-secondary);
         font-size: 0.9rem;
         text-align: right;
+        color: var(--text-secondary);
         font-variant-numeric: tabular-nums;
       }
 
-      @media (max-width: 768px) {
-        .cat-row {
-          grid-template-columns: 1fr auto auto;
-          gap: 0.5rem 1rem;
-        }
-
-        .cat-bar {
-          grid-column: 1 / -1;
-          order: 3;
-        }
+      /* ── Kárdex ── */
+      #valuacion {
+        margin: 0 0 2rem;
       }
 
-      .chart-tip {
-        position: fixed;
-        z-index: 1000;
-        pointer-events: none;
-        background: var(--glass-bg);
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        border: 1px solid var(--glass-border);
-        box-shadow: var(--glass-shadow);
-        color: var(--text-primary);
-        padding: 0.4rem 0.6rem;
-        border-radius: var(--radius-control);
-        font-size: 0.85rem;
+      #valuacion h3 {
+        margin-bottom: 0.25rem;
+      }
+
+      #valuacion .kpi-row {
+        margin: 1rem 0;
+      }
+
+      #valuacion .kpi-value {
+        font-size: 1.5rem;
+      }
+
+      .aviso-cfdi {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        padding: 0.875rem 1.25rem;
+        border-radius: var(--r-small);
+        background: var(--peach);
+        color: var(--sienna);
+        font-size: 0.9375rem;
+      }
+
+      .valor-productos summary {
+        margin-bottom: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+      }
+
+      #kardex-table td:first-child,
+      #actividad-table td:first-child {
         white-space: nowrap;
+        font-variant-numeric: tabular-nums;
       }
 
-      /* SELECTOR DE ICONOS */
+      #actividad-table td:last-child {
+        white-space: normal;
+        overflow-wrap: anywhere;
+      }
+
+      .actividad-alerta {
+        color: var(--danger-text);
+      }
+
+      .filtros-actividad {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin: 0 0 1rem;
+      }
+
+      .filtros-actividad .form-group {
+        flex: 1 1 14rem;
+        margin-bottom: 0;
+      }
+
+      .filtros-actividad .form-group:last-child {
+        flex: 0 1 14rem;
+      }
+
+      /* ── Category picker ── */
       .icon-grid {
         --cat-color: #6e6e73;
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
         gap: 0.5rem;
+        max-height: 240px;
+        overflow-y: auto;
+        padding: 2px;
       }
 
       .icon-option {
@@ -1448,16 +1497,16 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-control);
-        background: var(--bg-primary);
+        margin: 0;
+        border: 1px solid var(--hairline);
+        border-radius: var(--r-image);
+        background: var(--canvas);
         color: var(--text-secondary);
         cursor: pointer;
         transition:
-          background-color 150ms ease,
-          color 150ms ease,
-          border-color 150ms ease,
-          transform 100ms ease-out;
+          background-color 150ms ease-out,
+          color 150ms ease-out,
+          border-color 150ms ease-out;
       }
 
       .icon-option input {
@@ -1473,13 +1522,9 @@
 
       @media (hover: hover) and (pointer: fine) {
         .icon-option:hover {
-          color: var(--text-primary);
+          color: var(--ink);
           border-color: var(--cat-color);
         }
-      }
-
-      .icon-option:active {
-        transform: scale(0.94);
       }
 
       .icon-option:has(input:focus-visible) {
@@ -1488,51 +1533,239 @@
       }
 
       .icon-option:has(input:checked) {
-        background: color-mix(in srgb, var(--cat-color) 14%, transparent);
         border: 2px solid var(--cat-color);
+        background: color-mix(in srgb, var(--cat-color) 14%, transparent);
         color: var(--cat-color);
       }
 
-      @media (prefers-reduced-motion: reduce) {
-        .icon-option,
-        .icon {
-          transition: none;
-        }
+      .icon-buscar {
+        margin-bottom: 0.75rem;
       }
 
-      /* COLOR PICKER MEJORADO */
       .color-picker-container {
         display: flex;
         align-items: center;
         gap: 1rem;
       }
 
-      .color-input-wrapper {
-        position: relative;
-      }
-
-      #cat-color,
-      #prod-color {
-        width: 80px;
-        height: 80px;
-        border: none;
-        border-radius: var(--radius-control);
+      #cat-color {
+        width: 64px;
+        height: 64px;
+        min-height: 0;
+        padding: 0.25rem;
+        border-radius: var(--r-small);
         cursor: pointer;
-        transition: transform 200ms ease;
-      }
-
-      #cat-color:hover,
-      #prod-color:hover {
-        transform: scale(1.05);
       }
 
       .color-label {
-        font-size: 0.85rem;
+        font-family: var(--font-mono);
+        font-size: 0.875rem;
         color: var(--text-secondary);
-        font-weight: 500;
       }
 
-      /* MÓVIL: kept last so it overrides the base rules above. */
+      /* ── Feedback ── */
+      .success-toast {
+        position: fixed;
+        right: 2rem;
+        bottom: 2rem;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.875rem 1.25rem;
+        border-radius: var(--r-small);
+        background: var(--canvas);
+        box-shadow: var(--shadow-pop);
+        color: var(--ink);
+        font-weight: 500;
+        animation:
+          slideIn 250ms cubic-bezier(0.23, 1, 0.32, 1),
+          slideOut 250ms cubic-bezier(0.23, 1, 0.32, 1) 3750ms forwards;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+      }
+
+      @keyframes slideOut {
+        to {
+          opacity: 0;
+          transform: translateY(12px);
+        }
+      }
+
+      .success-icon {
+        width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 5px;
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--success-text) 14%, transparent);
+        color: var(--success-text);
+      }
+
+      .success-icon .icon {
+        width: 100%;
+        height: 100%;
+      }
+
+      .chart-tip {
+        position: fixed;
+        z-index: 1000;
+        pointer-events: none;
+        padding: 0.4rem 0.75rem;
+        border-radius: var(--r-image);
+        background: var(--canvas);
+        box-shadow: var(--shadow-pop);
+        color: var(--ink);
+        font-size: 0.85rem;
+        white-space: nowrap;
+      }
+
+      /* Hidden for non-admins. The API enforces the same rules; this only tidies the UI. */
+      body:not(.es-admin) .solo-admin {
+        display: none !important;
+      }
+
+      /* ── Sign in ── */
+      .acceso {
+        min-height: 100dvh;
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        align-items: center;
+        gap: 4rem;
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 3rem 2rem;
+      }
+
+      .acceso-intro .logo {
+        height: 2rem;
+        width: auto;
+        color: var(--ink);
+        margin-bottom: 3rem;
+      }
+
+      .acceso-titulo {
+        font-family: var(--font-serif);
+        font-size: 3.5rem;
+        font-weight: 400;
+        line-height: 1.12;
+        letter-spacing: -0.02em;
+      }
+
+      .acceso-titulo em {
+        color: var(--accent-text);
+      }
+
+      .acceso-texto {
+        margin-top: 1.25rem;
+        max-width: 46ch;
+        font-size: 1.125rem;
+        color: var(--text-secondary);
+      }
+
+      .acceso-puntos {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 2rem;
+        list-style: none;
+      }
+
+      .acceso-puntos li {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.9375rem;
+      }
+
+      .acceso-puntos .icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        padding: 0.5rem;
+        border-radius: 50%;
+        background: var(--mist);
+        color: var(--accent-text);
+      }
+
+      .acceso-tarjeta {
+        width: 100%;
+        max-width: 440px;
+        justify-self: end;
+        padding: 2.25rem;
+        border-radius: var(--r-card);
+        background: var(--canvas);
+        box-shadow: var(--shadow-float);
+      }
+
+      [data-theme="dark"] .acceso-tarjeta {
+        background: var(--mist);
+      }
+
+      .acceso-tarjeta h1 {
+        font-size: 2rem;
+        line-height: 1.2;
+        margin-bottom: 0.5rem;
+      }
+
+      .acceso-tarjeta .almacen-nota {
+        margin-bottom: 1.5rem;
+      }
+
+      .acceso-sub {
+        margin-bottom: 1.5rem;
+        color: var(--text-secondary);
+      }
+
+      /* ── Motion preferences ── */
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+
+        .spinner {
+          animation-duration: 600ms !important;
+          animation-iteration-count: infinite !important;
+        }
+      }
+
+      /* ── Phones: kept last so it overrides the rules above ── */
+      @media (max-width: 900px) {
+        .acceso {
+          grid-template-columns: 1fr;
+          gap: 2rem;
+          padding: 2rem 1rem;
+        }
+
+        .acceso-intro .logo {
+          margin-bottom: 1.5rem;
+        }
+
+        .acceso-titulo {
+          font-size: 2.25rem;
+        }
+
+        .acceso-puntos {
+          display: none;
+        }
+
+        .acceso-tarjeta {
+          justify-self: stretch;
+          max-width: none;
+          padding: 1.5rem 1.25rem;
+        }
+      }
+
       @media (max-width: 768px) {
         .container {
           padding: 0 1rem;
@@ -1542,16 +1775,28 @@
           padding: 0.75rem 0;
         }
 
-        h1 {
-          font-size: 1.35rem;
-        }
-
         h2 {
-          font-size: 1.35rem;
-          margin-bottom: 1rem;
+          font-size: 2rem;
         }
 
-        /* iOS-style tab bar: every section one thumb away, nothing hidden off-screen. */
+        .page-head {
+          margin-bottom: 1.5rem;
+        }
+
+        .page-head > .btn {
+          width: 100%;
+        }
+
+        .buscador {
+          flex: 1 1 100%;
+        }
+
+        .fila-campos {
+          grid-template-columns: 1fr;
+          gap: 0;
+        }
+
+        /* Bottom tab bar: every section one thumb away. */
         .nav-tabs {
           position: fixed;
           left: 0;
@@ -1564,47 +1809,58 @@
           gap: 0;
           margin: 0;
           padding: 0.25rem 0.5rem calc(0.25rem + env(safe-area-inset-bottom));
-          background: var(--glass-bg);
+          background: var(--glass);
           backdrop-filter: blur(20px) saturate(180%);
           -webkit-backdrop-filter: blur(20px) saturate(180%);
-          border-top: 1px solid var(--border-color);
-          border-bottom: none;
+          border-top: 1px solid var(--hairline);
         }
 
         .nav-tab {
-          display: flex;
           flex-direction: column;
-          align-items: center;
           gap: 0.2rem;
           min-height: 3.25rem;
           padding: 0.375rem 0 0.25rem;
-          border-bottom: none;
+          border-radius: var(--r-small);
           font-size: 0.6875rem;
-          font-weight: 600;
           white-space: nowrap;
         }
 
         .nav-tab .icon {
-          display: block;
           width: 1.5rem;
           height: 1.5rem;
+        }
+
+        .nav-tab:hover {
+          background: none;
+        }
+
+        .nav-tab.active {
+          background: none;
+          color: var(--accent-text);
         }
 
         body.es-admin .nav-tab {
           font-size: 0.625rem;
         }
 
-        /* Room for the tab bar, so the last row is never hidden behind it. */
         #app {
           padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
         }
 
         .content {
-          padding: 1rem 0;
+          padding: 1.25rem 0 2rem;
         }
 
         .form-section {
           padding: 1.5rem 1.25rem;
+        }
+
+        .pasos-num + span {
+          display: none;
+        }
+
+        .pasos .actual .pasos-num + span {
+          display: inline;
         }
 
         .success-toast {
@@ -1613,16 +1869,21 @@
           bottom: calc(4.75rem + env(safe-area-inset-bottom));
         }
 
+        .usuario-actual {
+          display: none;
+        }
+
         /* Tables become one card per row. */
         table {
-          border: none;
+          display: block;
           border-radius: 0;
           box-shadow: none;
           background: transparent;
         }
 
-        /* Visually hidden but still read, so each cell keeps its column header. */
+        /* Block, so the clip applies: a table-group ignores width/overflow and would widen the page. */
         thead {
+          display: block;
           position: absolute;
           width: 1px;
           height: 1px;
@@ -1642,11 +1903,14 @@
           display: flex;
           flex-direction: column;
           gap: 0.625rem;
-          padding: 1rem;
-          background: var(--bg-secondary);
-          border: 1px solid var(--border-color);
-          border-radius: var(--radius-card);
-          box-shadow: var(--shadow-rest);
+          padding: 1rem 1.125rem;
+          border-radius: var(--r-floating);
+          background: var(--canvas);
+          box-shadow: var(--shadow-ring);
+        }
+
+        tbody tr:hover {
+          background: var(--canvas);
         }
 
         td {
@@ -1657,23 +1921,21 @@
           justify-items: start;
           padding: 0;
           border: none;
-          font-size: 0.95rem;
         }
 
         td::before {
           content: attr(data-label);
           font-size: 0.75rem;
-          font-weight: 600;
+          font-weight: 500;
           color: var(--text-secondary);
         }
 
-        /* The name cell is the card title, so its label is redundant. */
         td:first-child {
           display: block;
-          font-size: 1.05rem;
-          font-weight: 600;
           padding-bottom: 0.625rem;
-          border-bottom: 1px solid var(--border-color);
+          border-bottom: 1px solid var(--hairline);
+          font-size: 1.0625rem;
+          font-weight: 500;
         }
 
         td:last-child {
@@ -1681,7 +1943,7 @@
           justify-content: flex-end;
           gap: 0.5rem;
           padding-top: 0.625rem;
-          border-top: 1px solid var(--border-color);
+          border-top: 1px solid var(--hairline);
         }
 
         td:first-child::before,
@@ -1689,7 +1951,6 @@
           display: none;
         }
 
-        /* The kárdex ends in the user, not buttons: keep it as a labeled row. */
         #kardex-table td:last-child {
           display: grid;
           justify-content: normal;
@@ -1701,40 +1962,24 @@
           display: block;
         }
 
-        /* The activity log ends in text, not buttons: read it left to right. */
         #actividad-table td:last-child {
           display: block;
         }
 
-        tbody td:last-child .btn {
-          width: 44px;
-          height: 44px;
-          margin: 0;
-          display: inline-flex;
-          justify-content: center;
-          background: var(--bg-primary);
+        /* The empty-state cell is also td:last-child: undo its nowrap and the kárdex label layout. */
+        td[colspan],
+        #kardex-table td[colspan] {
+          display: block;
+          padding: 2rem 0;
+          border: none;
+          font-weight: 400;
+          white-space: normal;
         }
 
-        tbody td:last-child .btn.btn-texto {
-          width: auto;
-          padding: 0 0.9rem;
-        }
-
-        .usuario-actual {
+        #kardex-table td[colspan]::before {
           display: none;
         }
 
-        .acceso-tarjeta {
-          padding: 1.5rem 1.25rem;
-        }
-
-        td[colspan] {
-          display: block;
-          border: none;
-          font-weight: 400;
-        }
-
-        /* Almacén: KPIs as compact rows. */
         .kpi-row {
           grid-template-columns: 1fr;
           gap: 0.5rem;
@@ -1749,26 +1994,23 @@
         }
 
         .kpi-value {
-          font-size: 1.5rem;
           margin-top: 0;
+          font-size: 1.375rem;
           text-align: right;
         }
 
         .almacen-card {
-          padding: 1rem;
+          padding: 1.25rem 1rem;
         }
-      }
-      /* System setting "reduce transparency": every glass layer turns solid. */
-      @media (prefers-reduced-transparency: reduce) {
-        [data-theme] .header,
-        [data-theme] .form-section,
-        [data-theme] .success-toast,
-        [data-theme] .chart-tip,
-        [data-theme] .acceso-tarjeta,
-        [data-theme] .nav-tabs {
-          background: var(--bg-primary);
-          backdrop-filter: none;
-          -webkit-backdrop-filter: none;
+
+        .cat-row {
+          grid-template-columns: 1fr auto auto;
+          gap: 0.5rem 1rem;
+        }
+
+        .cat-bar {
+          grid-column: 1 / -1;
+          order: 3;
         }
       }
     </style>
@@ -1809,54 +2051,64 @@
 
     <!-- ACCESO: login, or the first-time admin setup when there are no users yet -->
     <main id="acceso" class="acceso" hidden>
-      <div class="acceso-tarjeta">
-        <p class="brand acceso-marca">
-          <svg class="logo" viewBox="0 0 403 60" role="img" aria-label="ORDINUM">
-            <use href="#logo-ordinum"></use>
-          </svg>
-        </p>
+      <section class="acceso-intro" aria-label="ORDINUM">
+        <svg class="logo" viewBox="0 0 403 60" role="img" aria-label="ORDINUM">
+          <use href="#logo-ordinum"></use>
+        </svg>
+        <p class="acceso-titulo">Tu inventario <em>en orden</em>, tu negocio en regla.</p>
+        <p class="acceso-texto">Existencias por almacén, alertas de stock y cada movimiento con su factura, en un solo lugar.</p>
+        <ul class="acceso-puntos">
+          <li><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-warehouse"></use></svg> Varios almacenes con su capacidad</li>
+          <li><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-alert-triangle"></use></svg> Avisos de stock bajo y de almacén lleno</li>
+          <li><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-bill-list"></use></svg> Kárdex con el CFDI de cada compra y venta</li>
+        </ul>
+      </section>
 
+      <div class="acceso-tarjeta">
         <form id="form-login" onsubmit="iniciarSesion(event)" hidden>
           <h1>Iniciar sesión</h1>
+          <p class="acceso-sub">Entra con el usuario que te dio tu administrador.</p>
           <div class="form-group">
             <label for="login-usuario">Usuario</label>
-            <input type="text" id="login-usuario" autocomplete="username" autocapitalize="none" spellcheck="false" required />
+            <input type="text" id="login-usuario" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Ej. maria.lopez" data-mascara="usuario" required />
           </div>
           <div class="form-group">
             <label for="login-password">Contraseña</label>
             <input type="password" id="login-password" autocomplete="current-password" required />
           </div>
           <p class="form-error" id="login-error" role="alert" hidden></p>
-          <button class="btn btn-primary btn-ancho" type="submit">Entrar</button>
+          <button class="btn btn-primary btn-ancho" type="submit">Iniciar sesión</button>
           <p class="ayuda">¿Olvidaste tu contraseña? Pide a un administrador que te ponga una nueva.</p>
         </form>
 
         <form id="form-setup" onsubmit="configurarAdmin(event)" hidden>
-          <h1>Crea el administrador</h1>
+          <h1>Crea la cuenta de administrador</h1>
           <p class="almacen-nota">
             Es la primera vez que se usa el sistema. Esta cuenta podrá crear
             usuarios y asignarles almacenes.
           </p>
           <div class="form-group">
-            <label for="setup-nombre">Nombre</label>
-            <input type="text" id="setup-nombre" autocomplete="name" required />
+            <label for="setup-nombre">Nombre completo</label>
+            <input type="text" id="setup-nombre" autocomplete="name" placeholder="Ej. María López" required />
           </div>
           <div class="form-group">
             <label for="setup-usuario">Usuario</label>
-            <input type="text" id="setup-usuario" autocomplete="username" autocapitalize="none" spellcheck="false" required aria-describedby="setup-usuario-ayuda" />
+            <input type="text" id="setup-usuario" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Ej. maria.lopez" data-mascara="usuario" required aria-describedby="setup-usuario-ayuda" />
             <p class="ayuda" id="setup-usuario-ayuda">De 3 a 50 caracteres: letras, números, punto o guion.</p>
           </div>
-          <div class="form-group">
-            <label for="setup-password">Contraseña</label>
-            <input type="password" id="setup-password" autocomplete="new-password" minlength="8" required aria-describedby="setup-password-ayuda" />
-            <p class="ayuda" id="setup-password-ayuda">Mínimo 8 caracteres.</p>
-          </div>
-          <div class="form-group">
-            <label for="setup-confirmar">Repite la contraseña</label>
-            <input type="password" id="setup-confirmar" autocomplete="new-password" minlength="8" required />
+          <div class="fila-campos">
+            <div class="form-group">
+              <label for="setup-password">Contraseña</label>
+              <input type="password" id="setup-password" autocomplete="new-password" minlength="8" required aria-describedby="setup-password-ayuda" />
+              <p class="ayuda" id="setup-password-ayuda">Mínimo 8 caracteres.</p>
+            </div>
+            <div class="form-group">
+              <label for="setup-confirmar">Repite la contraseña</label>
+              <input type="password" id="setup-confirmar" autocomplete="new-password" minlength="8" required />
+            </div>
           </div>
           <p class="form-error" id="setup-error" role="alert" hidden></p>
-          <button class="btn btn-primary btn-ancho" type="submit">Crear y entrar</button>
+          <button class="btn btn-primary btn-ancho" type="submit">Crear cuenta y entrar</button>
         </form>
       </div>
     </main>
@@ -1873,7 +2125,7 @@
           <div class="header-acciones">
             <span class="usuario-actual">
               <svg class="icon" aria-hidden="true">
-                <use href="assets/icons.svg?v=5#i-user"></use>
+                <use href="assets/icons.svg?v=6#i-user"></use>
               </svg>
               <span id="usuario-nombre"></span>
             </span>
@@ -1885,7 +2137,7 @@
               aria-label="Cerrar sesión"
             >
               <svg class="icon" aria-hidden="true">
-                <use href="assets/icons.svg?v=5#i-logout"></use>
+                <use href="assets/icons.svg?v=6#i-logout"></use>
               </svg>
             </button>
           </div>
@@ -1897,27 +2149,27 @@
       <nav aria-label="Secciones">
         <div class="nav-tabs" role="tablist" onkeydown="moverEntrePestanas(event)">
           <button class="nav-tab active" role="tab" id="tab-productos" aria-selected="true" aria-controls="productos" onclick="showTab('productos')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=5#i-box"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-box"></use></svg>
             Productos
           </button>
           <button class="nav-tab" role="tab" id="tab-categorias" aria-selected="false" aria-controls="categorias" tabindex="-1" onclick="showTab('categorias')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=5#i-tag-price"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-tag-price"></use></svg>
             Categorías
           </button>
           <button class="nav-tab" role="tab" id="tab-almacen" aria-selected="false" aria-controls="almacen" tabindex="-1" onclick="showTab('almacen')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=5#i-warehouse"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-warehouse"></use></svg>
             Almacén
           </button>
           <button class="nav-tab" role="tab" id="tab-kardex" aria-selected="false" aria-controls="kardex" tabindex="-1" onclick="showTab('kardex')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=5#i-bill-list"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-bill-list"></use></svg>
             Kárdex
           </button>
           <button class="nav-tab solo-admin" role="tab" id="tab-usuarios" aria-selected="false" aria-controls="usuarios" tabindex="-1" onclick="showTab('usuarios')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=5#i-users"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-users"></use></svg>
             Usuarios
           </button>
           <button class="nav-tab solo-admin" role="tab" id="tab-actividad" aria-selected="false" aria-controls="actividad" tabindex="-1" onclick="showTab('actividad')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=5#i-history"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-history"></use></svg>
             Actividad
           </button>
         </div>
@@ -1925,70 +2177,89 @@
 
       <!-- PRODUCTOS -->
       <div id="productos" class="content active" role="tabpanel" aria-labelledby="tab-productos">
-        <h2>Productos</h2>
-        <button class="btn btn-primary" id="btn-nuevo-producto" onclick="showForm('producto')">
-          <svg class="icon" aria-hidden="true">
-            <use href="assets/icons.svg?v=5#i-plus"></use>
-          </svg>
-          Nuevo producto
-        </button>
-        <div
-          id="producto-form"
-          class="form-section"
-          style="display: none; margin-top: 1.5rem; position: relative"
-        >
-          <button
-            type="button"
-            onclick="closeForm('producto')"
-            class="close-btn"
-            aria-label="Cerrar"
-          >
-            <svg class="icon" aria-hidden="true">
-              <use href="assets/icons.svg?v=5#i-x"></use>
-            </svg>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">Inventario</p>
+            <h2>Productos</h2>
+            <p class="page-desc">Lo que tienes, dónde está y si conviene reabastecer u ofertar.</p>
+          </div>
+          <button class="btn btn-primary" id="btn-nuevo-producto" onclick="showForm('producto')">
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-plus"></use></svg>
+            Agregar producto
+          </button>
+        </header>
+        <div id="producto-form" class="form-section" style="display: none">
+          <button type="button" onclick="closeForm('producto')" class="close-btn" aria-label="Cerrar formulario">
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-x"></use></svg>
           </button>
           <h3>Agregar producto</h3>
-          <form onsubmit="guardarProducto(event)">
-            <div class="form-group">
-              <label for="prod-nombre">Nombre</label>
-              <input type="text" id="prod-nombre" required />
-            </div>
-            <div class="form-group">
-              <label for="prod-sku">SKU</label>
-              <input type="text" id="prod-sku" required />
-            </div>
-            <div class="form-group">
-              <label for="prod-categoria">Categoría</label>
-              <select id="prod-categoria" required></select>
-            </div>
-            <div class="form-group" id="prod-cantidad-grupo">
-              <label for="prod-cantidad">Cantidad</label>
-              <input type="number" id="prod-cantidad" value="0" min="0" />
-            </div>
-            <fieldset class="form-group" id="prod-ubicaciones-grupo" hidden>
-              <legend>Cantidad por almacén</legend>
-              <div
-                id="prod-ubicaciones"
-                class="ubic-lista"
-                oninput="actualizarTotalUbicaciones()"
-              ></div>
-              <p class="alm-total" id="prod-ubic-total" aria-live="polite"></p>
+          <form onsubmit="guardarProducto(event)" data-pasos novalidate>
+            <ol class="pasos"></ol>
+            <div class="pasos-barra" aria-hidden="true"><span></span></div>
+            <p class="pasos-estado" aria-live="polite"></p>
+            <fieldset class="paso">
+              <legend>Datos</legend>
+              <div class="form-group">
+                <label for="prod-nombre">Nombre</label>
+                <input type="text" id="prod-nombre" placeholder="Ej. Mouse inalámbrico" required />
+              </div>
+              <div class="fila-campos">
+                <div class="form-group">
+                  <label for="prod-sku">SKU</label>
+                  <input type="text" id="prod-sku" placeholder="Ej. MOUSE-001" data-mascara="sku" autocapitalize="characters" spellcheck="false" required aria-describedby="prod-sku-ayuda" />
+                  <p class="ayuda" id="prod-sku-ayuda">Letras, números y guiones; se escribe en mayúsculas.</p>
+                </div>
+                <div class="form-group">
+                  <label for="prod-categoria">Categoría</label>
+                  <select id="prod-categoria" required></select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="prod-desc">Descripción <span class="opcional">(opcional)</span></label>
+                <textarea id="prod-desc" placeholder="Marca, modelo o cualquier detalle útil"></textarea>
+              </div>
             </fieldset>
-            <div class="form-group">
-              <label for="prod-precio">Precio unitario</label>
-              <input type="number" id="prod-precio" step="0.01" min="0" />
-            </div>
-            <div class="form-group">
-              <label for="prod-compra">Precio de compra (opcional)</label>
-              <input type="number" id="prod-compra" step="0.01" min="0" />
-            </div>
-            <div class="form-group">
-              <label for="prod-desc">Descripción</label>
-              <textarea id="prod-desc"></textarea>
-            </div>
+            <fieldset class="paso">
+              <legend>Precios</legend>
+              <div class="fila-campos">
+                <div class="form-group">
+                  <label for="prod-compra">Precio de compra <span class="opcional">(opcional)</span></label>
+                  <div class="campo-dinero"><input type="text" id="prod-compra" inputmode="decimal" placeholder="0.00" data-mascara="dinero" autocomplete="off" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="prod-precio">Precio de venta</label>
+                  <div class="campo-dinero"><input type="text" id="prod-precio" inputmode="decimal" placeholder="0.00" data-mascara="dinero" autocomplete="off" /></div>
+                </div>
+              </div>
+              <p class="ayuda">Sin IVA. Con los dos precios, la tabla calcula el margen.</p>
+            </fieldset>
+            <fieldset class="paso">
+              <legend>Existencias</legend>
+              <div class="form-group" id="prod-cantidad-grupo">
+                <label for="prod-cantidad">Cantidad</label>
+                <input type="number" id="prod-cantidad" value="0" min="0" inputmode="numeric" />
+              </div>
+              <fieldset class="form-group" id="prod-ubicaciones-grupo" hidden>
+                <legend>Cantidad por almacén</legend>
+                <div id="prod-ubicaciones" class="ubic-lista" oninput="actualizarTotalUbicaciones()"></div>
+                <p class="alm-total" id="prod-ubic-total" aria-live="polite"></p>
+              </fieldset>
+            </fieldset>
             <p class="form-error" id="producto-error" role="alert" hidden></p>
-            <button class="btn btn-primary" type="submit">Guardar</button>
+            <div class="pasos-acciones">
+              <button class="btn btn-secundario" type="button" data-atras><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-arrow-left"></use></svg> Atrás</button>
+              <button class="btn btn-primary" type="button" data-continuar>Continuar <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-arrow-right"></use></svg></button>
+              <button class="btn btn-primary" type="submit" data-enviar>Guardar producto</button>
+            </div>
           </form>
+        </div>
+        <div class="barra-lista">
+          <div class="buscador">
+            <label for="prod-buscar" class="sr-only">Buscar productos</label>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-search"></use></svg>
+            <input type="search" id="prod-buscar" data-filtra="productos-table" placeholder="Busca por nombre, SKU o categoría" autocomplete="off" oninput="filtrarTabla('productos-table', 'prod-conteo')" />
+          </div>
+          <p class="conteo" id="prod-conteo" aria-live="polite"></p>
         </div>
         <div class="productos-layout">
           <div class="productos-tabla">
@@ -2032,54 +2303,71 @@
 
       <!-- CATEGORÍAS -->
       <div id="categorias" class="content" role="tabpanel" aria-labelledby="tab-categorias">
-        <h2>Categorías</h2>
-        <button class="btn btn-primary solo-admin" id="btn-nuevo-categoria" onclick="showForm('categoria')">
-          <svg class="icon" aria-hidden="true">
-            <use href="assets/icons.svg?v=5#i-plus"></use>
-          </svg>
-          Nueva categoría
-        </button>
-        <div
-          id="categoria-form"
-          class="form-section"
-          style="display: none; margin-top: 1.5rem; position: relative"
-        >
-          <button
-            type="button"
-            onclick="closeForm('categoria')"
-            class="close-btn"
-            aria-label="Cerrar"
-          >
-            <svg class="icon" aria-hidden="true">
-              <use href="assets/icons.svg?v=5#i-x"></use>
-            </svg>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">Catálogo</p>
+            <h2>Categorías</h2>
+            <p class="page-desc">Agrupa tus productos con un color y un icono para encontrarlos de un vistazo.</p>
+          </div>
+          <button class="btn btn-primary solo-admin" id="btn-nuevo-categoria" onclick="showForm('categoria')">
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-plus"></use></svg>
+            Agregar categoría
+          </button>
+        </header>
+        <div id="categoria-form" class="form-section" style="display: none">
+          <button type="button" onclick="closeForm('categoria')" class="close-btn" aria-label="Cerrar formulario">
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-x"></use></svg>
           </button>
           <h3>Agregar categoría</h3>
-          <form onsubmit="guardarCategoria(event)">
-            <div class="form-group">
-              <label for="cat-nombre">Nombre</label>
-              <input type="text" id="cat-nombre" required />
-            </div>
-            <fieldset class="form-group">
-              <legend>Icono</legend>
-              <div class="icon-grid" id="cat-icon-grid"></div>
-            </fieldset>
-            <div class="form-group">
-              <label for="cat-color">Color</label>
-              <div class="color-picker-container">
-                <div class="color-input-wrapper">
-                  <input type="color" id="cat-color" value="#6E6E73" />
-                </div>
-                <div class="color-label" id="cat-color-label">#6E6E73</div>
+          <form onsubmit="guardarCategoria(event)" data-pasos novalidate>
+            <ol class="pasos"></ol>
+            <div class="pasos-barra" aria-hidden="true"><span></span></div>
+            <p class="pasos-estado" aria-live="polite"></p>
+            <fieldset class="paso">
+              <legend>Datos</legend>
+              <div class="form-group">
+                <label for="cat-nombre">Nombre</label>
+                <input type="text" id="cat-nombre" placeholder="Ej. Electrónica" required />
               </div>
-            </div>
-            <div class="form-group">
-              <label for="cat-desc">Descripción</label>
-              <textarea id="cat-desc"></textarea>
-            </div>
+              <div class="form-group">
+                <label for="cat-desc">Descripción <span class="opcional">(opcional)</span></label>
+                <textarea id="cat-desc" placeholder="Qué tipo de productos agrupa"></textarea>
+              </div>
+            </fieldset>
+            <fieldset class="paso">
+              <legend>Apariencia</legend>
+              <div class="form-group">
+                <label for="cat-color">Color</label>
+                <div class="color-picker-container">
+                  <input type="color" id="cat-color" value="#6E6E73" />
+                  <div class="color-label" id="cat-color-label">#6E6E73</div>
+                </div>
+              </div>
+              <fieldset class="form-group">
+                <legend>Icono</legend>
+                <div class="buscador icon-buscar">
+                  <label for="cat-icon-buscar" class="sr-only">Buscar icono</label>
+                  <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-search"></use></svg>
+                  <input type="search" id="cat-icon-buscar" placeholder="Busca un icono: ropa, café, oficina…" autocomplete="off" oninput="filtrarIconos(this.value)" />
+                </div>
+                <div class="icon-grid" id="cat-icon-grid"></div>
+              </fieldset>
+            </fieldset>
             <p class="form-error" id="categoria-error" role="alert" hidden></p>
-            <button class="btn btn-primary" type="submit">Guardar</button>
+            <div class="pasos-acciones">
+              <button class="btn btn-secundario" type="button" data-atras><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-arrow-left"></use></svg> Atrás</button>
+              <button class="btn btn-primary" type="button" data-continuar>Continuar <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-arrow-right"></use></svg></button>
+              <button class="btn btn-primary" type="submit" data-enviar>Guardar categoría</button>
+            </div>
           </form>
+        </div>
+        <div class="barra-lista">
+          <div class="buscador">
+            <label for="cat-buscar" class="sr-only">Buscar categorías</label>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-search"></use></svg>
+            <input type="search" id="cat-buscar" data-filtra="categorias-table" placeholder="Busca una categoría" autocomplete="off" oninput="filtrarTabla('categorias-table', 'cat-conteo')" />
+          </div>
+          <p class="conteo" id="cat-conteo" aria-live="polite"></p>
         </div>
         <table id="categorias-table" class="tabla-separada">
           <thead>
@@ -2096,7 +2384,13 @@
 
       <!-- ALMACÉN -->
       <div id="almacen" class="content" role="tabpanel" aria-labelledby="tab-almacen">
-        <h2>Almacén</h2>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">Espacio</p>
+            <h2>Almacén</h2>
+            <p class="page-desc">Cuánto cabe, cuánto ocupas y cómo se reparte tu stock entre almacenes.</p>
+          </div>
+        </header>
         <p id="alm-sin-acceso" class="almacen-nota" hidden>
           No tienes almacenes asignados. Pídele al administrador que te asigne
           uno.
@@ -2124,14 +2418,14 @@
               onclick="agregarFilaAlmacen()"
             >
               <svg class="icon" aria-hidden="true">
-                <use href="assets/icons.svg?v=5#i-plus"></use>
+                <use href="assets/icons.svg?v=6#i-plus"></use>
               </svg>
-              Agregar almacén
+              Agregar otro almacén
             </button>
             <p class="alm-total" id="alm-total" aria-live="polite"></p>
             <p class="form-error" id="almacen-error" role="alert" hidden></p>
             <div class="alm-acciones">
-              <button class="btn btn-primary" type="submit">Guardar</button>
+              <button class="btn btn-primary" type="submit">Guardar almacenes</button>
               <button
                 class="btn btn-edit"
                 type="button"
@@ -2149,21 +2443,21 @@
           <div class="almacen-head">
             <p id="alm-resumen" class="almacen-nota"></p>
             <button class="btn btn-edit solo-admin" type="button" id="alm-editar" onclick="editarAlmacen()">
-              Editar configuración
+              Editar almacenes
             </button>
           </div>
 
           <div class="kpi-row">
             <div class="kpi">
-              <div class="kpi-label">Capacidad total</div>
+              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-warehouse"></use></svg> Capacidad total</div>
               <div class="kpi-value" id="alm-capacidad"></div>
             </div>
             <div class="kpi">
-              <div class="kpi-label">Espacio usado</div>
+              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-box"></use></svg> Espacio usado</div>
               <div class="kpi-value" id="alm-usado"></div>
             </div>
             <div class="kpi">
-              <div class="kpi-label">Espacio libre</div>
+              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-check"></use></svg> Espacio libre</div>
               <div class="kpi-value" id="alm-libre"></div>
             </div>
           </div>
@@ -2189,89 +2483,126 @@
 
       <!-- KÁRDEX: inventory movements with their invoice (CFDI) -->
       <div id="kardex" class="content" role="tabpanel" aria-labelledby="tab-kardex">
-        <h2>Kárdex</h2>
-        <p class="ayuda">Entradas y salidas de cada producto con su factura (CFDI). Las existencias se actualizan solas.</p>
-        <button class="btn btn-primary" id="btn-nuevo-movimiento" onclick="showForm('movimiento')" style="margin-top: 1rem">
-          <svg class="icon" aria-hidden="true">
-            <use href="assets/icons.svg?v=5#i-plus"></use>
-          </svg>
-          Registrar movimiento
-        </button>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">Movimientos</p>
+            <h2>Kárdex</h2>
+            <p class="page-desc">Entradas y salidas de cada producto con su factura (CFDI). Las existencias se actualizan solas.</p>
+          </div>
+          <button class="btn btn-primary" id="btn-nuevo-movimiento" onclick="showForm('movimiento')">
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-plus"></use></svg>
+            Registrar movimiento
+          </button>
+        </header>
 
-        <div id="movimiento-form" class="form-section" style="display: none; margin-top: 1.5rem; position: relative">
-          <button type="button" onclick="closeForm('movimiento')" class="close-btn" aria-label="Cerrar">
-            <svg class="icon" aria-hidden="true">
-              <use href="assets/icons.svg?v=5#i-x"></use>
-            </svg>
+        <div id="movimiento-form" class="form-section" style="display: none">
+          <button type="button" onclick="closeForm('movimiento')" class="close-btn" aria-label="Cerrar formulario">
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-x"></use></svg>
           </button>
           <h3>Registrar movimiento</h3>
-          <form onsubmit="guardarMovimiento(event)">
-            <div class="form-group">
-              <label for="mov-tipo">Tipo</label>
-              <select id="mov-tipo" onchange="actualizarFormMovimiento()">
-                <option value="compra">Compra a un proveedor (entrada)</option>
-                <option value="venta">Venta a un cliente (salida)</option>
-                <option value="devolucion_cliente">Devolución de un cliente (entrada)</option>
-                <option value="devolucion_proveedor">Devolución a un proveedor (salida)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="mov-producto">Producto</label>
-              <select id="mov-producto" required></select>
-            </div>
-            <div class="form-group">
-              <label for="mov-almacen">Almacén</label>
-              <select id="mov-almacen" required></select>
-            </div>
-            <div class="form-group">
-              <label for="mov-cantidad">Cantidad</label>
-              <input type="number" id="mov-cantidad" min="1" step="1" required />
-            </div>
-            <div class="form-group" id="mov-costo-grupo">
-              <label for="mov-costo">Costo unitario sin IVA</label>
-              <input type="number" id="mov-costo" min="0" step="0.01" />
-            </div>
-            <div class="form-group" id="mov-precio-grupo">
-              <label for="mov-precio" id="mov-precio-label">Precio unitario sin IVA</label>
-              <input type="number" id="mov-precio" min="0" step="0.01" />
-            </div>
-            <fieldset class="form-group">
-              <legend id="mov-cfdi-legend">Factura (CFDI de ingreso)</legend>
+          <form onsubmit="guardarMovimiento(event)" data-pasos novalidate>
+            <ol class="pasos"></ol>
+            <div class="pasos-barra" aria-hidden="true"><span></span></div>
+            <p class="pasos-estado" aria-live="polite"></p>
+            <fieldset class="paso">
+              <legend>Movimiento</legend>
               <div class="form-group">
-                <label for="mov-uuid">Folio fiscal (UUID)</label>
-                <input type="text" id="mov-uuid" maxlength="36" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" aria-describedby="mov-uuid-ayuda" />
-                <p class="ayuda" id="mov-uuid-ayuda">Viene impreso en la factura. Si aún no la tienes, puedes agregarla después.</p>
+                <label for="mov-tipo">Tipo</label>
+                <select id="mov-tipo" onchange="actualizarFormMovimiento()">
+                  <option value="compra">Compra a un proveedor (entrada)</option>
+                  <option value="venta">Venta a un cliente (salida)</option>
+                  <option value="devolucion_cliente">Devolución de un cliente (entrada)</option>
+                  <option value="devolucion_proveedor">Devolución a un proveedor (salida)</option>
+                </select>
               </div>
               <div class="form-group">
-                <label for="mov-rfc" id="mov-rfc-label">RFC del proveedor</label>
-                <input type="text" id="mov-rfc" maxlength="13" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+                <label for="mov-producto">Producto</label>
+                <input type="text" id="mov-producto" list="mov-productos" placeholder="Escribe el nombre o el SKU" autocomplete="off" required oninput="validarProductoMovimiento()" aria-describedby="mov-producto-ayuda" />
+                <datalist id="mov-productos"></datalist>
+                <p class="ayuda" id="mov-producto-ayuda">Escribe para buscar o despliega la lista.</p>
+              </div>
+              <div class="form-group">
+                <label for="mov-almacen">Almacén</label>
+                <select id="mov-almacen" required></select>
               </div>
             </fieldset>
-            <div class="form-group">
-              <label for="mov-nota">Nota (opcional)</label>
-              <input type="text" id="mov-nota" maxlength="255" autocomplete="off" />
-            </div>
+            <fieldset class="paso">
+              <legend>Cantidad e importe</legend>
+              <div class="fila-campos">
+                <div class="form-group">
+                  <label for="mov-cantidad">Cantidad</label>
+                  <input type="number" id="mov-cantidad" min="1" step="1" inputmode="numeric" placeholder="0" required />
+                </div>
+                <div class="form-group" id="mov-costo-grupo">
+                  <label for="mov-costo">Costo unitario sin IVA</label>
+                  <div class="campo-dinero"><input type="text" id="mov-costo" inputmode="decimal" placeholder="0.00" data-mascara="dinero" autocomplete="off" /></div>
+                </div>
+                <div class="form-group" id="mov-precio-grupo">
+                  <label for="mov-precio" id="mov-precio-label">Precio unitario sin IVA</label>
+                  <div class="campo-dinero"><input type="text" id="mov-precio" inputmode="decimal" placeholder="0.00" data-mascara="dinero" autocomplete="off" /></div>
+                </div>
+              </div>
+            </fieldset>
+            <fieldset class="paso">
+              <legend>Factura</legend>
+              <fieldset class="form-group">
+                <legend id="mov-cfdi-legend">Factura (CFDI de ingreso)</legend>
+                <div class="form-group">
+                  <label for="mov-xml">Archivo XML <span class="opcional">(opcional)</span></label>
+                  <input type="file" id="mov-xml" accept=".xml,application/xml,text/xml" aria-describedby="mov-xml-ayuda" />
+                  <p class="ayuda" id="mov-xml-ayuda">Con el XML, el folio fiscal y el RFC se toman de la factura; no hace falta escribirlos.</p>
+                </div>
+                <div class="form-group">
+                  <label for="mov-pdf">Archivo PDF <span class="opcional">(opcional)</span></label>
+                  <input type="file" id="mov-pdf" accept=".pdf,application/pdf" />
+                </div>
+                <div class="form-group">
+                  <label for="mov-uuid">Folio fiscal (UUID) <span class="opcional">(opcional)</span></label>
+                  <input type="text" id="mov-uuid" maxlength="36" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" data-mascara="uuid" aria-describedby="mov-uuid-ayuda" />
+                  <p class="ayuda" id="mov-uuid-ayuda">Viene impreso en la factura; los guiones se ponen solos. Si aún no la tienes, agrégala después desde la tabla.</p>
+                </div>
+                <div class="form-group">
+                  <label for="mov-rfc" id="mov-rfc-label">RFC del proveedor</label>
+                  <input type="text" id="mov-rfc" maxlength="13" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Ej. XAXX010101000" data-mascara="rfc" />
+                </div>
+              </fieldset>
+              <div class="form-group">
+                <label for="mov-nota">Nota <span class="opcional">(opcional)</span></label>
+                <input type="text" id="mov-nota" maxlength="255" autocomplete="off" placeholder="Ej. Pedido 1043" />
+              </div>
+            </fieldset>
             <p class="form-error" id="movimiento-error" role="alert" hidden></p>
-            <button class="btn btn-primary" type="submit">Registrar</button>
+            <div class="pasos-acciones">
+              <button class="btn btn-secundario" type="button" data-atras><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-arrow-left"></use></svg> Atrás</button>
+              <button class="btn btn-primary" type="button" data-continuar>Continuar <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-arrow-right"></use></svg></button>
+              <button class="btn btn-primary" type="submit" data-enviar>Registrar movimiento</button>
+            </div>
           </form>
         </div>
 
-        <div id="factura-form" class="form-section" style="display: none; margin-top: 1.5rem; position: relative">
-          <button type="button" onclick="closeForm('factura')" class="close-btn" aria-label="Cerrar">
-            <svg class="icon" aria-hidden="true">
-              <use href="assets/icons.svg?v=5#i-x"></use>
-            </svg>
+        <div id="factura-form" class="form-section" style="display: none">
+          <button type="button" onclick="closeForm('factura')" class="close-btn" aria-label="Cerrar formulario">
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-x"></use></svg>
           </button>
           <h3>Agregar factura</h3>
           <p class="ayuda" id="fac-resumen"></p>
           <form onsubmit="guardarFactura(event)">
             <div class="form-group">
-              <label for="fac-uuid">Folio fiscal (UUID)</label>
-              <input type="text" id="fac-uuid" maxlength="36" required autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" />
+              <label for="fac-xml">Archivo XML</label>
+              <input type="file" id="fac-xml" accept=".xml,application/xml,text/xml" aria-describedby="fac-xml-ayuda" />
+              <p class="ayuda" id="fac-xml-ayuda">Con el XML, el folio fiscal y el RFC se toman de la factura; no hace falta escribirlos.</p>
+            </div>
+            <div class="form-group">
+              <label for="fac-pdf">Archivo PDF</label>
+              <input type="file" id="fac-pdf" accept=".pdf,application/pdf" />
+            </div>
+            <div class="form-group">
+              <label for="fac-uuid">Folio fiscal (UUID) <span class="opcional">(si no subes el XML)</span></label>
+              <input type="text" id="fac-uuid" maxlength="36" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" data-mascara="uuid" />
             </div>
             <div class="form-group">
               <label for="fac-rfc" id="fac-rfc-label">RFC</label>
-              <input type="text" id="fac-rfc" maxlength="13" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+              <input type="text" id="fac-rfc" maxlength="13" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Ej. XAXX010101000" data-mascara="rfc" />
             </div>
             <p class="form-error" id="factura-error" role="alert" hidden></p>
             <button class="btn btn-primary" type="submit">Guardar factura</button>
@@ -2283,19 +2614,19 @@
           <p class="ayuda">Método de costo promedio (LISR, art. 41). Ventas y costo son del mes elegido; el valor del inventario es el de hoy.</p>
           <div class="kpi-row">
             <div class="kpi">
-              <div class="kpi-label">Valor del inventario hoy</div>
+              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-box"></use></svg> Valor del inventario hoy</div>
               <div class="kpi-value" id="val-inventario"></div>
             </div>
             <div class="kpi">
-              <div class="kpi-label">Ventas netas del mes</div>
+              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-tag-price"></use></svg> Ventas netas del mes</div>
               <div class="kpi-value" id="val-ventas"></div>
             </div>
             <div class="kpi">
-              <div class="kpi-label">Costo de lo vendido</div>
+              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-bill-list"></use></svg> Costo de lo vendido</div>
               <div class="kpi-value" id="val-costo"></div>
             </div>
             <div class="kpi">
-              <div class="kpi-label">Utilidad bruta</div>
+              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-check"></use></svg> Utilidad bruta</div>
               <div class="kpi-value" id="val-utilidad"></div>
             </div>
           </div>
@@ -2323,7 +2654,11 @@
           </div>
           <div class="form-group">
             <label for="kdx-producto">Producto</label>
-            <select id="kdx-producto" onchange="pintarKardex()"></select>
+            <div class="buscador">
+              <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-search"></use></svg>
+              <input type="search" id="kdx-producto" list="kdx-productos" placeholder="Nombre o SKU" autocomplete="off" oninput="pintarKardex()" />
+              <datalist id="kdx-productos"></datalist>
+            </div>
           </div>
         </div>
         <div class="tabla-desplazable">
@@ -2347,61 +2682,75 @@
 
       <!-- USUARIOS (admin) -->
       <div id="usuarios" class="content solo-admin" role="tabpanel" aria-labelledby="tab-usuarios">
-        <h2>Usuarios</h2>
-        <button class="btn btn-primary" id="btn-nuevo-usuario" onclick="showForm('usuario')">
-          <svg class="icon" aria-hidden="true">
-            <use href="assets/icons.svg?v=5#i-plus"></use>
-          </svg>
-          Nuevo usuario
-        </button>
-        <div
-          id="usuario-form"
-          class="form-section"
-          style="display: none; margin-top: 1.5rem; position: relative"
-        >
-          <button
-            type="button"
-            onclick="closeForm('usuario')"
-            class="close-btn"
-            aria-label="Cerrar"
-          >
-            <svg class="icon" aria-hidden="true">
-              <use href="assets/icons.svg?v=5#i-x"></use>
-            </svg>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">Equipo</p>
+            <h2>Usuarios</h2>
+            <p class="page-desc">Quién puede entrar al sistema y a qué almacenes.</p>
+          </div>
+          <button class="btn btn-primary" id="btn-nuevo-usuario" onclick="showForm('usuario')">
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-plus"></use></svg>
+            Agregar usuario
+          </button>
+        </header>
+        <div id="usuario-form" class="form-section" style="display: none">
+          <button type="button" onclick="closeForm('usuario')" class="close-btn" aria-label="Cerrar formulario">
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-x"></use></svg>
           </button>
           <h3>Nuevo usuario</h3>
-          <form onsubmit="guardarUsuario(event)">
-            <div class="form-group">
-              <label for="usu-nombre">Nombre</label>
-              <input type="text" id="usu-nombre" autocomplete="off" required />
-            </div>
-            <div class="form-group">
-              <label for="usu-usuario">Usuario</label>
-              <input type="text" id="usu-usuario" autocomplete="off" autocapitalize="none" spellcheck="false" required aria-describedby="usu-usuario-ayuda" />
-              <p class="ayuda" id="usu-usuario-ayuda">De 3 a 50 caracteres: letras, números, punto o guion.</p>
-            </div>
-            <div class="form-group">
-              <label for="usu-password">Contraseña</label>
-              <input type="password" id="usu-password" autocomplete="new-password" minlength="8" aria-describedby="usu-password-ayuda" />
-              <p class="ayuda" id="usu-password-ayuda">Mínimo 8 caracteres.</p>
-            </div>
-            <div class="form-group">
-              <label for="usu-rol">Rol</label>
-              <select id="usu-rol" onchange="actualizarRolUsuario()">
-                <option value="usuario">Usuario: solo sus almacenes</option>
-                <option value="admin">Administrador: todo</option>
-              </select>
-            </div>
-            <fieldset class="form-group" id="usu-almacenes-grupo">
-              <legend>Almacenes a los que puede entrar</legend>
-              <div id="usu-almacenes" class="check-lista"></div>
+          <form onsubmit="guardarUsuario(event)" data-pasos novalidate>
+            <ol class="pasos"></ol>
+            <div class="pasos-barra" aria-hidden="true"><span></span></div>
+            <p class="pasos-estado" aria-live="polite"></p>
+            <fieldset class="paso">
+              <legend>Datos de acceso</legend>
+              <div class="form-group">
+                <label for="usu-nombre">Nombre completo</label>
+                <input type="text" id="usu-nombre" autocomplete="off" placeholder="Ej. María López" required />
+              </div>
+              <div class="form-group">
+                <label for="usu-usuario">Usuario</label>
+                <input type="text" id="usu-usuario" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Ej. maria.lopez" data-mascara="usuario" required aria-describedby="usu-usuario-ayuda" />
+                <p class="ayuda" id="usu-usuario-ayuda">De 3 a 50 caracteres: letras, números, punto o guion.</p>
+              </div>
+              <div class="form-group">
+                <label for="usu-password">Contraseña</label>
+                <input type="password" id="usu-password" autocomplete="new-password" minlength="8" aria-describedby="usu-password-ayuda" />
+                <p class="ayuda" id="usu-password-ayuda">Mínimo 8 caracteres.</p>
+              </div>
             </fieldset>
-            <p class="ayuda" id="usu-admin-nota" hidden>
-              El administrador ve y gestiona todos los almacenes.
-            </p>
+            <fieldset class="paso">
+              <legend>Permisos</legend>
+              <div class="form-group">
+                <label for="usu-rol">Rol</label>
+                <select id="usu-rol" onchange="actualizarRolUsuario()">
+                  <option value="usuario">Usuario: solo sus almacenes</option>
+                  <option value="admin">Administrador: todo</option>
+                </select>
+              </div>
+              <fieldset class="form-group" id="usu-almacenes-grupo">
+                <legend>Almacenes a los que puede entrar</legend>
+                <div id="usu-almacenes" class="check-lista"></div>
+              </fieldset>
+              <p class="ayuda" id="usu-admin-nota" hidden>
+                El administrador ve y gestiona todos los almacenes.
+              </p>
+            </fieldset>
             <p class="form-error" id="usuario-error" role="alert" hidden></p>
-            <button class="btn btn-primary" type="submit">Guardar</button>
+            <div class="pasos-acciones">
+              <button class="btn btn-secundario" type="button" data-atras><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-arrow-left"></use></svg> Atrás</button>
+              <button class="btn btn-primary" type="button" data-continuar>Continuar <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-arrow-right"></use></svg></button>
+              <button class="btn btn-primary" type="submit" data-enviar>Guardar usuario</button>
+            </div>
           </form>
+        </div>
+        <div class="barra-lista">
+          <div class="buscador">
+            <label for="usu-buscar" class="sr-only">Buscar usuarios</label>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-search"></use></svg>
+            <input type="search" id="usu-buscar" data-filtra="usuarios-table" placeholder="Busca por nombre o usuario" autocomplete="off" oninput="filtrarTabla('usuarios-table', 'usu-conteo')" />
+          </div>
+          <p class="conteo" id="usu-conteo" aria-live="polite"></p>
         </div>
         <table id="usuarios-table" class="tabla-separada">
           <thead>
@@ -2420,8 +2769,13 @@
 
       <!-- ACTIVIDAD (admin): audit log, read-only -->
       <div id="actividad" class="content solo-admin" role="tabpanel" aria-labelledby="tab-actividad">
-        <h2>Actividad</h2>
-        <p class="ayuda">Quién entró al sistema y qué cambió. Se muestran los últimos 500 movimientos.</p>
+        <header class="page-head">
+          <div>
+            <p class="eyebrow">Seguridad</p>
+            <h2>Actividad</h2>
+            <p class="page-desc">Quién entró al sistema y qué cambió. Se muestran los últimos 500 movimientos.</p>
+          </div>
+        </header>
         <div class="filtros-actividad">
           <div class="form-group">
             <label for="act-buscar">Buscar</label>
@@ -2492,7 +2846,7 @@
       }
 
       // Bump ?v= (here and in the HTML) when icons.svg changes, so phones drop their cached copy.
-      const ICON_SPRITE = "assets/icons.svg?v=5";
+      const ICON_SPRITE = "assets/icons.svg?v=6";
       const DEFAULT_CAT_ICON = "box";
       const DEFAULT_CAT_COLOR = "#6E6E73";
 
@@ -2654,6 +3008,8 @@
         focoAnterior = document.activeElement;
         limpiarErrorFormulario(type);
         panel.style.display = "block";
+        const conPasos = panel.querySelector("form[data-pasos]");
+        if (conPasos) irAPaso(conPasos, 0);
         panel.querySelector("input:not([type=radio]), select, textarea").focus();
       }
 
@@ -2684,8 +3040,10 @@
           precio_unitario: "mov-precio",
           cfdi_uuid: "mov-uuid",
           rfc: "mov-rfc",
+          factura_xml: "mov-xml",
+          factura_pdf: "mov-pdf",
         },
-        factura: { cfdi_uuid: "fac-uuid", rfc: "fac-rfc" },
+        factura: { cfdi_uuid: "fac-uuid", rfc: "fac-rfc", factura_xml: "fac-xml", factura_pdf: "fac-pdf" },
       };
 
       function mostrarErrorFormulario(type, error) {
@@ -2693,6 +3051,8 @@
         caja.textContent = error.message;
         caja.hidden = false;
         const campo = document.getElementById(CAMPOS_FORMULARIO[type]?.[error.campo]);
+        const paso = campo?.closest(".paso");
+        if (paso) irAPaso(paso.form, [...paso.form.querySelectorAll(":scope > .paso")].indexOf(paso));
         if (campo) {
           campo.setAttribute("aria-invalid", "true");
           campo.setAttribute("aria-describedby", caja.id);
@@ -2758,6 +3118,7 @@
             .reset();
           document.getElementById("cat-color").value = DEFAULT_CAT_COLOR;
           updateColorLabel(DEFAULT_CAT_COLOR);
+          filtrarIconos("");
         } else if (type === "usuario") {
           editingUsuarioId = null;
           document.getElementById("usuario-form").querySelector("form").reset();
@@ -2798,6 +3159,7 @@
               .join("");
           }
           rolesDeTabla(tbody.closest("table"));
+          filtrarTabla("categorias-table", "cat-conteo");
 
           // Llenar select de productos
           const select = document.getElementById("prod-categoria");
@@ -3041,11 +3403,11 @@
 
         let estado = "";
         if (usado > capacidad) {
-          estado = `<div class="alm-estado">${icon("alert-triangle", "color: #FF3B30")} Capacidad excedida por ${fmtNum(usado - capacidad)} cajas</div>`;
+          estado = `<div class="alm-estado">${icon("alert-triangle", "color: var(--danger-text)")} Capacidad excedida por ${fmtNum(usado - capacidad)} cajas</div>`;
         } else if (usado === capacidad) {
-          estado = `<div class="alm-estado">${icon("alert-triangle", "color: #FF3B30")} Sin espacio libre</div>`;
+          estado = `<div class="alm-estado">${icon("alert-triangle", "color: var(--danger-text)")} Sin espacio libre</div>`;
         } else if (pctCap(usado) >= 90) {
-          estado = `<div class="alm-estado">${icon("alert-triangle", "color: #FF9500")} Almacén casi lleno</div>`;
+          estado = `<div class="alm-estado">${icon("alert-triangle", "color: var(--warning-text)")} Almacén casi lleno</div>`;
         }
         document.getElementById("alm-estado").innerHTML = estado;
 
@@ -3105,7 +3467,7 @@
           .map((a) => {
             const cajas = usadoPorAlmacen.get(a.id) || 0;
             const pct = (cajas / a.capacidad) * 100;
-            const color = pct >= 100 ? "#FF3B30" : pct >= 90 ? "#FF9500" : "var(--info-text)";
+            const color = pct >= 100 ? "var(--danger-text)" : pct >= 90 ? "var(--warning-text)" : "var(--info-text)";
             return `<div class="cat-row">
                 <span class="cat-name">${icon("warehouse")}${escapeHtml(a.nombre)}</span>
                 <div class="cat-bar"><span style="width: ${Math.min(pct, 100)}%; background: ${color}"></span></div>
@@ -3200,7 +3562,7 @@
           ? `<p>No hay espacio libre para ${fmtNum(sinEspacio)} cajas: necesitas más capacidad.</p>`
           : "";
         return `<div class="redistribuir">
-            <div class="alm-estado">${icon("alert-triangle", "color: #FF9500")}${titulo}</div>
+            <div class="alm-estado">${icon("alert-triangle", "color: var(--warning-text)")}${titulo}</div>
             ${pasos ? `<p>Para repartir la carga, mueve físicamente este stock:</p><ul>${pasos}</ul>` : ""}
             ${falta}
             ${pasos ? `<button type="button" class="btn btn-primary" onclick="aplicarRedistribucion(this)">${icon("check")} Ya lo moví: aplicar</button>` : ""}
@@ -3381,6 +3743,7 @@
           }
 
           rolesDeTabla(tbody.closest("table"));
+          filtrarTabla("productos-table", "prod-conteo");
         } catch (e) {
           console.error(e);
         }
@@ -3675,12 +4038,7 @@
           ]);
           kardex = movimientos;
           productosKardex = productos;
-          const filtro = document.getElementById("kdx-producto");
-          const elegido = filtro.value;
-          filtro.innerHTML =
-            '<option value="">Todos</option>' +
-            productos.map((p) => `<option value="${p.id}">${escapeHtml(p.nombre)}</option>`).join("");
-          filtro.value = elegido;
+          document.getElementById("kdx-productos").innerHTML = opcionesProducto(productos);
           pintarKardex();
           if (esAdmin()) cargarValuacion(campoMes.value);
         } catch (e) {
@@ -3693,8 +4051,8 @@
       }
 
       function pintarKardex() {
-        const producto = document.getElementById("kdx-producto").value;
-        const filas = kardex.filter((m) => !producto || String(m.producto_id) === producto);
+        const producto = sinAcentos(document.getElementById("kdx-producto").value.trim());
+        const filas = kardex.filter((m) => !producto || sinAcentos(`${m.producto_nombre} · ${m.producto_sku}`).includes(producto));
         const tbody = document.querySelector("#kardex-table tbody");
         tbody.innerHTML = filas.length
           ? filas
@@ -3714,13 +4072,27 @@
                     : ["venta", "devolucion_cliente"].includes(m.tipo)
                       ? m.precio_unitario
                       : null;
+                const deQue = `de la ${escapeHtml(etiqueta.toLowerCase())} de ${escapeHtml(m.producto_nombre)}`;
                 let factura = '<span class="sin-dato">No aplica</span>';
-                if (m.cfdi_uuid) {
-                  factura = `<code class="sku" title="${escapeHtml(m.cfdi_uuid)}">${escapeHtml(m.cfdi_uuid.slice(0, 8))}…</code>`;
-                } else if (m.cfdi_tipo) {
-                  factura = `<button class="btn btn-edit btn-texto" onclick="agregarFactura(${m.id})" aria-label="Agregar factura a la ${escapeHtml(etiqueta.toLowerCase())} de ${escapeHtml(m.producto_nombre)}">Agregar factura</button>`;
+                if (m.cfdi_tipo) {
+                  factura = m.cfdi_uuid
+                    ? `<code class="sku" title="${escapeHtml(m.cfdi_uuid)}">${escapeHtml(m.cfdi_uuid.slice(0, 8))}…</code>`
+                    : "";
+                  if (m.rfc) factura += `<span class="rfc">${escapeHtml(m.rfc)}</span>`;
+                  const archivos = ["pdf", "xml"]
+                    .filter((ext) => m[ext])
+                    .map(
+                      (ext) =>
+                        `<a class="btn btn-edit btn-texto" href="${API}?resource=kardex&id=${m.id}&archivo=${ext}" target="_blank" rel="noopener" aria-label="${ext === "pdf" ? "Ver el PDF" : "Descargar el XML"} ${deQue}">${ext.toUpperCase()}</a>`,
+                    );
+                  if (!m.cfdi_uuid || !m.pdf || !m.xml) {
+                    const texto = m.cfdi_uuid ? "Adjuntar" : "Agregar factura";
+                    archivos.push(
+                      `<button class="btn btn-edit btn-texto" onclick="agregarFactura(${m.id})" aria-label="${texto} ${m.cfdi_uuid ? "archivos " : ""}${deQue}">${texto}</button>`,
+                    );
+                  }
+                  factura += `<span class="factura-archivos">${archivos.join("")}</span>`;
                 }
-                if (m.rfc) factura += `<span class="rfc">${escapeHtml(m.rfc)}</span>`;
                 return `<tr>
                   <td data-label="Fecha">${fecha}</td>
                   <td data-label="Movimiento"><span class="estado-stock" style="--c: ${color}">${etiqueta}</span></td>
@@ -3768,11 +4140,7 @@
       }
 
       function prepararFormularioMovimiento() {
-        document.getElementById("mov-producto").innerHTML =
-          '<option value="">Elige un producto</option>' +
-          productosKardex
-            .map((p) => `<option value="${p.id}">${escapeHtml(p.nombre)} (${escapeHtml(p.sku)})</option>`)
-            .join("");
+        document.getElementById("mov-productos").innerHTML = opcionesProducto(productosKardex);
         document.getElementById("mov-almacen").innerHTML = almacenesGuardados
           .map((a) => `<option value="${a.id}">${escapeHtml(a.nombre)}</option>`)
           .join("");
@@ -3810,10 +4178,9 @@
         try {
           await api(`${API}?resource=kardex`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
+            body: datosConFactura("mov", {
               tipo: valor("mov-tipo"),
-              producto_id: valor("mov-producto"),
+              producto_id: productoDeMovimiento()?.id ?? "",
               almacen_id: valor("mov-almacen"),
               cantidad: valor("mov-cantidad"),
               costo_unitario: valor("mov-costo"),
@@ -3833,6 +4200,17 @@
         }
       }
 
+      // Text fields plus the chosen invoice files, as multipart so PHP gets them in $_POST and $_FILES.
+      function datosConFactura(prefijo, campos) {
+        const datos = new FormData();
+        for (const [campo, valor] of Object.entries(campos)) datos.append(campo, valor);
+        for (const ext of ["pdf", "xml"]) {
+          const archivo = document.getElementById(`${prefijo}-${ext}`).files[0];
+          if (archivo) datos.append(ext, archivo);
+        }
+        return datos;
+      }
+
       function agregarFactura(id) {
         const m = kardex.find((x) => x.id === id);
         if (!m) return;
@@ -3842,6 +4220,7 @@
           `${etiqueta} de ${fmtNum(Math.abs(m.cantidad))} «${m.producto_nombre}» en ${m.almacen ?? "almacén eliminado"}.`;
         document.getElementById("fac-rfc-label").textContent =
           m.tipo === "compra" || m.tipo === "devolucion_proveedor" ? "RFC del proveedor" : "RFC del cliente";
+        document.getElementById("fac-uuid").value = m.cfdi_uuid ?? "";
         document.getElementById("fac-rfc").value = m.rfc ?? "";
         document.getElementById("movimiento-form").style.display = "none";
         abrirFormulario("factura");
@@ -3853,9 +4232,8 @@
         const restaurar = botonCargando(e.target.querySelector('button[type="submit"]'));
         try {
           await api(`${API}?resource=kardex&id=${facturaDeMovimiento}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
+            method: "POST",
+            body: datosConFactura("fac", {
               cfdi_uuid: document.getElementById("fac-uuid").value.trim(),
               rfc: document.getElementById("fac-rfc").value.trim(),
             }),
@@ -3941,6 +4319,7 @@
             })
             .join("");
           rolesDeTabla(tbody.closest("table"));
+          filtrarTabla("usuarios-table", "usu-conteo");
         } catch (e) {
           alert(e.message);
         }
@@ -4063,8 +4442,164 @@
         document.addEventListener("reset", ocultar, true);
       }
 
+      // ── Steps: long forms go one part at a time; the bar and "Paso 2 de 3" show progress. ──
+      function pasosDe(form) {
+        return [...form.querySelectorAll(":scope > .paso")];
+      }
+
+      function primerInvalido(pasos, desde, hasta) {
+        for (let i = desde; i < hasta; i++) {
+          const campo = [...pasos[i].querySelectorAll("input, select, textarea")].find(
+            (c) => !c.disabled && !c.checkValidity(),
+          );
+          if (campo) return { paso: i, campo };
+        }
+        return null;
+      }
+
+      function irAPaso(form, n, validar = false, enfocar = false) {
+        const pasos = pasosDe(form);
+        n = Math.max(0, Math.min(n, pasos.length - 1));
+        const actual = form.pasoActual ?? 0;
+        // Moving forward checks the steps being left behind.
+        if (validar && n > actual) {
+          const invalido = primerInvalido(pasos, actual, n);
+          if (invalido) {
+            irAPaso(form, invalido.paso);
+            invalido.campo.reportValidity();
+            return;
+          }
+        }
+        form.pasoActual = n;
+        pasos.forEach((p, i) => (p.hidden = i !== n));
+        form.querySelectorAll(".pasos li").forEach((li, i) => {
+          li.classList.toggle("actual", i === n);
+          li.classList.toggle("hecho", i < n);
+          li.querySelector("button").setAttribute("aria-current", i === n ? "step" : "false");
+        });
+        form.querySelector(".pasos-barra span").style.width = `${((n + 1) / pasos.length) * 100}%`;
+        form.querySelector(".pasos-estado").textContent =
+          `Paso ${n + 1} de ${pasos.length}: ${pasos[n].querySelector("legend").textContent}`;
+        form.querySelector("[data-atras]").hidden = n === 0;
+        form.querySelector("[data-continuar]").hidden = n === pasos.length - 1;
+        form.querySelector("[data-enviar]").hidden = n !== pasos.length - 1;
+        if (enfocar) pasos[n].querySelector("input:not([type=radio]):not(:disabled), select, textarea")?.focus();
+      }
+
+      function prepararPasos(form) {
+        const pasos = pasosDe(form);
+        const lista = form.querySelector(".pasos");
+        lista.innerHTML = pasos
+          .map(
+            (p, i) =>
+              `<li><button type="button" data-ir="${i}"><span class="pasos-num">${i + 1}</span><span>${escapeHtml(p.querySelector("legend").textContent)}</span></button></li>`,
+          )
+          .join("");
+        lista.addEventListener("click", (e) => {
+          const boton = e.target.closest("[data-ir]");
+          if (boton) irAPaso(form, Number(boton.dataset.ir), true, true);
+        });
+        form.querySelector("[data-atras]").addEventListener("click", () => irAPaso(form, form.pasoActual - 1, false, true));
+        form.querySelector("[data-continuar]").addEventListener("click", () => irAPaso(form, form.pasoActual + 1, true, true));
+        // Enter in a middle step moves forward instead of submitting half a form; the last step checks them all.
+        form.addEventListener(
+          "submit",
+          (e) => {
+            const ultimo = pasos.length - 1;
+            if (form.pasoActual < ultimo) {
+              e.preventDefault();
+              e.stopImmediatePropagation();
+              irAPaso(form, form.pasoActual + 1, true, true);
+              return;
+            }
+            const invalido = primerInvalido(pasos, 0, pasos.length);
+            if (invalido) {
+              e.preventDefault();
+              e.stopImmediatePropagation();
+              irAPaso(form, invalido.paso);
+              invalido.campo.reportValidity();
+            }
+          },
+          true,
+        );
+        irAPaso(form, 0);
+      }
+
+      // ── Input masks: each field shapes itself as the person types. ──
+      const MASCARAS = {
+        sku: (v) => v.toUpperCase().replace(/\s+/g, "-").replace(/[^A-Z0-9_-]/g, "").slice(0, 50),
+        uuid: (v) => {
+          const h = v.toUpperCase().replace(/[^0-9A-F]/g, "").slice(0, 32);
+          return [h.slice(0, 8), h.slice(8, 12), h.slice(12, 16), h.slice(16, 20), h.slice(20)].filter(Boolean).join("-");
+        },
+        rfc: (v) => v.toUpperCase().replace(/[^A-ZÑ&0-9]/g, "").slice(0, 13),
+        dinero: (v) => {
+          const [entero, ...decimales] = v.replace(/,/g, ".").replace(/[^0-9.]/g, "").split(".");
+          return decimales.length ? `${entero}.${decimales.join("").slice(0, 2)}` : entero;
+        },
+        usuario: (v) => v.replace(/[^A-Za-z0-9._-]/g, "").slice(0, 50),
+      };
+
+      function prepararMascaras() {
+        document.addEventListener("input", (e) => {
+          const mascara = MASCARAS[e.target.dataset?.mascara];
+          if (!mascara) return;
+          const valor = mascara(e.target.value);
+          if (valor !== e.target.value) e.target.value = valor;
+        });
+        // Amounts settle to two decimals when the person leaves the field.
+        document.addEventListener("change", (e) => {
+          if (e.target.dataset?.mascara === "dinero" && e.target.value !== "") {
+            e.target.value = Number(e.target.value).toFixed(2);
+          }
+        });
+      }
+
+      // ── Search: type to narrow a list; it still scrolls as usual. ──
+      const sinAcentos = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+      function filtrarTabla(tablaId, conteoId) {
+        const campo = document.querySelector(`[data-filtra="${tablaId}"]`);
+        const texto = campo.value.trim();
+        const buscado = sinAcentos(texto);
+        const filas = [...document.querySelectorAll(`#${tablaId} tbody tr`)].filter((tr) => !tr.querySelector("td[colspan]"));
+        let visibles = 0;
+        filas.forEach((tr) => {
+          const coincide = !buscado || sinAcentos(tr.textContent).includes(buscado);
+          tr.hidden = !coincide;
+          if (coincide) visibles++;
+        });
+        const conteo = document.getElementById(conteoId);
+        if (!filas.length) conteo.textContent = "";
+        else if (!buscado) conteo.textContent = `${filas.length} en total`;
+        else conteo.textContent = visibles ? `${visibles} de ${filas.length}` : `Nada coincide con «${texto}»`;
+      }
+
+      function filtrarIconos(texto) {
+        const buscado = sinAcentos(texto.trim());
+        document.querySelectorAll("#cat-icon-grid .icon-option").forEach((opcion) => {
+          opcion.hidden = buscado && !sinAcentos(opcion.title).includes(buscado);
+        });
+      }
+
+      function opcionesProducto(productos) {
+        return productos.map((p) => `<option value="${escapeHtml(`${p.nombre} · ${p.sku}`)}"></option>`).join("");
+      }
+
+      function productoDeMovimiento() {
+        const texto = document.getElementById("mov-producto").value.trim();
+        return productosKardex.find((p) => `${p.nombre} · ${p.sku}` === texto);
+      }
+
+      function validarProductoMovimiento() {
+        const campo = document.getElementById("mov-producto");
+        campo.setCustomValidity(campo.value && !productoDeMovimiento() ? "Elige un producto de la lista." : "");
+      }
+
       // Inicializar
       prepararCamposPassword();
+      prepararMascaras();
+      document.querySelectorAll("form[data-pasos]").forEach(prepararPasos);
       initTheme();
       setupIconSelector();
       setupChartTip();
