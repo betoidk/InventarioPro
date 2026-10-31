@@ -16,31 +16,46 @@
       );
     </script>
     <style>
-      /* ORDINUM design system: editorial base from DESIGN.md (ink, paper, mist, peach; serif titles,
-         pill controls, 24px cards) + ORDINUM blue/green for actions and brand + red/orange/green for status. */
+      /* ORDINUM design system. Layout and palette from DESIGN.md (ink, mist, peach; pill controls, 24px cards)
+         + ORDINUM blue/green for actions and brand + red/orange/green for status. Type from Font.md (SF Pro;
+         Inter where SF Pro isn't installed). Surfaces are glass plates from Glass.md, in both themes. */
+
+      /* Inter (SIL OFL 1.1, see assets/fonts/Inter-LICENSE.txt): the stand-in Font.md names for SF Pro.
+         Bundled so it works offline; Apple devices use their own SF Pro first and never download it. */
+      @font-face {
+        font-family: "Inter";
+        src: url("assets/fonts/InterVariable.woff2?v=4.0") format("woff2");
+        font-weight: 100 900;
+        font-style: normal;
+        font-display: swap;
+      }
+
       :root {
-        /* Surfaces */
+        /* Surfaces: a pale blue page under glass; canvas stays solid white for fields and small fills. */
+        --page: #eaf2fb;
         --canvas: #ffffff;
         --fog: #fafafb;
         --mist: #f2f2f3;
         --hairline: #e6e6e9;
-        --field-border: #c9cbd1;
-        /* Text: secondary is darker than DESIGN.md's #777b86 so it reaches 4.5:1 on white. */
-        --ink: #17191c;
-        --text-secondary: #6b6f7a;
-        --text-tertiary: #8a8d94;
+        /* Text: secondary is dark enough to keep 4.5:1 even over the bluest part of the page light. */
+        /* Text carries a navy tint by day, as the frost tones do at night. */
+        --ink: #0f1b2d;
+        --text-secondary: #4f5d73;
+        --text-tertiary: #77839a;
+        --heading-gradient: linear-gradient(180deg, #0f2a4d, #2563b8);
         /* Editorial accent: one warm card per page. */
         --peach: #fbe1d1;
         --sienna: #5d2a1a;
         /* Brand: blue acts (trust, "do this"), green confirms (stock and money that is fine). */
         --accent: #0071e3;
         --accent-hover: #0062c5;
-        --accent-text: #0066cc;
+        --accent-text: #005bb8;
         --brand-green: #34c759;
-        /* Status, text-safe on white: red stops, orange warns, green reassures, blue informs. */
+        /* Status: red stops, orange warns, green reassures, blue informs. Dark enough for 4.5:1 on the glass
+           even where it sits over the bluest part of the page. */
         --danger-text: #c4001a;
-        --warning-text: #a35200;
-        --success-text: #1e7a34;
+        --warning-text: #8f4700;
+        --success-text: #1a6b2d;
         --info-text: #00639c;
         --focus-ring: #0066cc;
         /* Shape */
@@ -50,14 +65,48 @@
         --r-input: 16px;
         --r-image: 12px;
         --r-pill: 9999px;
-        /* Elevation: only floating layers (forms, toasts, popovers) get a shadow. */
-        --shadow-float: 0 0 0 1px rgba(4, 23, 43, 0.05), 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-        --shadow-pop: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 4px 24px rgba(0, 0, 0, 0.08);
-        --shadow-ring: 0 0 0 1px var(--hairline);
-        /* Type */
-        --font-serif: "Signifier", "Source Serif 4", "Iowan Old Style", Charter, Georgia, ui-serif, serif;
-        --font-sans: "Söhne", "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        /* Glass in light. White glass on a white page is invisible, so the page carries a real blue gradient
+           (near white at the top left, where the page titles sit) and the glass is see-through enough to take
+           its color. The edge is a white inner line plus a blue outer line: white alone vanishes on white.
+           Plates sit in the page; floating sheets (forms, sign in, toasts) are thicker. */
+        --glass-fill: rgba(255, 255, 255, 0.45);
+        --glass-fill-strong: rgba(255, 255, 255, 0.6);
+        --glass-sheen: linear-gradient(135deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.2) 40%, rgba(255, 255, 255, 0) 65%);
+        --glass-edge: rgba(40, 90, 160, 0.16);
+        --glass-base: linear-gradient(160deg, #f6f9fe 0%, #e4eefa 55%, #d4e4f7 100%);
+        --glass-grid: transparent;
+        --glass-spot: rgba(255, 255, 255, 0.85);
+        --glass-beam: transparent;
+        --glass-orb-a: rgba(0, 113, 227, 0.22);
+        --glass-orb-b: rgba(64, 156, 255, 0.32);
+        --glass-orb-c: rgba(90, 170, 255, 0.3);
+        --glass-mask: none;
+        /* Glass controls (fields, ghost buttons, chips, icon buttons, the current tab): a brighter, smaller
+           pane with a lit top edge and a blue outline, so each one reads as a piece of glass on its own. */
+        --ctrl-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.55));
+        --ctrl-bg-hover: linear-gradient(180deg, #ffffff, rgba(255, 255, 255, 0.72));
+        --ctrl-border: rgba(255, 255, 255, 0.95);
+        --ctrl-shadow: inset 0 1px 0 #ffffff, 0 0 0 1px rgba(40, 90, 160, 0.24), 0 6px 16px -8px rgba(30, 80, 160, 0.4);
+        --ctrl-highlight: rgba(255, 255, 255, 0.65);
+        /* Primary: quiet blue glass, a lit top edge and a small glow. Dark enough under the white label for 4.5:1. */
+        --btn-primary-bg: linear-gradient(180deg, #0a74e6, #0062c9);
+        --btn-primary-bg-hover: linear-gradient(180deg, #0a6cd8, #0058b5);
+        --btn-primary-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 12px -6px rgba(0, 113, 227, 0.5);
+        /* Blur only on layers content moves under (top bar, menus, toasts, tab bar). Plates in the page get
+           their glass from tint + inset light + halo, as Glass.md does, and stay cheap to scroll. */
+        --blur-glass: blur(20px) saturate(160%);
+        --shadow-glass: inset 0 1px 0 #ffffff, inset 0 0 0 1px rgba(255, 255, 255, 0.65),
+          0 0 0 1px rgba(40, 90, 160, 0.1), 0 30px 60px -28px rgba(30, 80, 160, 0.38);
+        --shadow-float: inset 0 1px 0 #ffffff, inset 0 0 0 1px rgba(255, 255, 255, 0.7),
+          0 0 0 1px rgba(40, 90, 160, 0.12), 0 34px 68px -26px rgba(30, 80, 160, 0.42);
+        --shadow-pop: inset 0 1px 0 #ffffff, inset 0 0 0 1px rgba(255, 255, 255, 0.7),
+          0 0 0 1px rgba(40, 90, 160, 0.12), 0 12px 32px rgba(30, 80, 160, 0.22);
+        /* Type (Font.md) */
+        --font-display: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
+        --font-sans: "SF Pro Text", -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", system-ui, sans-serif;
         --font-mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+        /* Editorial serif (DESIGN.md), kept only for the sign-in headline. */
+        --font-serif: "Signifier", "Source Serif 4", "Iowan Old Style", Charter, Georgia, ui-serif, serif;
         /* Names older code and inline styles still use. */
         --bg-primary: var(--canvas);
         --bg-secondary: var(--mist);
@@ -67,15 +116,18 @@
         color-scheme: light;
       }
 
+      /* Dark: the same blue glass at night. Deep navy lit by glowing blue orbs, glossy rims and sheen,
+         frost-toned text from Glass.md. */
       [data-theme="dark"] {
-        --canvas: #141517;
-        --fog: #18191c;
-        --mist: #222327;
-        --hairline: #2e2f34;
-        --field-border: #4a4c53;
-        --ink: #f2f2f3;
-        --text-secondary: #a3a6af;
-        --text-tertiary: #8a8d96;
+        --page: #071021;
+        --canvas: #071021;
+        --fog: #0b1528;
+        --mist: rgba(186, 214, 247, 0.06);
+        --hairline: rgba(186, 215, 247, 0.12);
+        --ink: #d1e4fa;
+        --text-secondary: #9da7ba;
+        --text-tertiary: #8b95a9;
+        --heading-gradient: linear-gradient(180deg, #d8ecf8, #98c0ef);
         --peach: #3a2419;
         --sienna: #f7c9ad;
         --accent-text: #409cff;
@@ -84,9 +136,31 @@
         --success-text: #30d158;
         --info-text: #64d2ff;
         --focus-ring: #409cff;
-        --shadow-float: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
-        --shadow-pop: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 4px 24px rgba(0, 0, 0, 0.5);
-        --track: #2e2f34;
+        --glass-fill: rgba(186, 214, 247, 0.06);
+        --glass-fill-strong: rgba(10, 20, 40, 0.78);
+        --glass-sheen: linear-gradient(135deg, rgba(216, 236, 248, 0.1), rgba(216, 236, 248, 0) 55%);
+        --glass-edge: rgba(140, 190, 255, 0.16);
+        --glass-grid: transparent;
+        --glass-spot: rgba(120, 170, 255, 0.18);
+        --glass-beam: transparent;
+        --glass-orb-a: rgba(0, 113, 227, 0.35);
+        --glass-orb-b: rgba(64, 156, 255, 0.28);
+        --glass-orb-c: rgba(100, 180, 255, 0.22);
+        --glass-mask: none;
+        --glass-base: none;
+        --ctrl-bg: linear-gradient(180deg, rgba(186, 214, 247, 0.14), rgba(186, 214, 247, 0.05));
+        --ctrl-bg-hover: linear-gradient(180deg, rgba(186, 214, 247, 0.2), rgba(186, 214, 247, 0.09));
+        --ctrl-border: rgba(140, 190, 255, 0.24);
+        --ctrl-shadow: inset 0 1px 0 rgba(216, 236, 248, 0.24), 0 6px 16px -8px rgba(0, 8, 24, 0.7);
+        --ctrl-highlight: rgba(216, 236, 248, 0.2);
+        --btn-primary-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 4px 14px -6px rgba(0, 113, 227, 0.55);
+        --shadow-glass: inset 1px 1px 0 rgba(216, 236, 248, 0.22), inset 0 24px 48px rgba(168, 216, 245, 0.05),
+          inset 0 0 0 1px rgba(140, 190, 255, 0.16), 0 24px 40px -20px rgba(0, 8, 24, 0.6);
+        --shadow-float: inset 1px 1px 0 rgba(216, 236, 248, 0.25), inset 0 24px 48px rgba(168, 216, 245, 0.06),
+          inset 0 0 0 1px rgba(140, 190, 255, 0.16), 0 28px 56px -20px rgba(0, 8, 24, 0.65);
+        --shadow-pop: inset 1px 1px 0 rgba(216, 236, 248, 0.25), inset 0 0 0 1px rgba(140, 190, 255, 0.16),
+          0 10px 28px rgba(0, 8, 24, 0.5);
+        --track: rgba(186, 214, 247, 0.1);
         color-scheme: dark;
       }
 
@@ -98,11 +172,59 @@
 
       body {
         font-family: var(--font-sans);
-        font-size: 16px;
-        line-height: 1.5;
-        background: var(--canvas);
+        font-size: 1.0625rem;
+        line-height: 1.47;
+        background: var(--page);
         color: var(--ink);
         -webkit-font-smoothing: antialiased;
+      }
+
+      /* Font.md tracking: SF Pro runs tight, about -0.016em at 14px. Set in em on every element (not inherited)
+         so each size gets its own amount; headings, long copy, small labels and code adjust it below. */
+      * {
+        letter-spacing: -0.016em;
+      }
+
+      .page-desc,
+      .acceso-texto,
+      .acceso-sub {
+        letter-spacing: -0.022em;
+      }
+
+      th,
+      .pasos-estado,
+      .estado-stock,
+      .estado-usuario,
+      .rfc,
+      .ubic,
+      .alm-encabezado {
+        letter-spacing: -0.01em;
+      }
+
+      .sku,
+      .color-label {
+        letter-spacing: 0;
+      }
+
+      /* Glass needs something behind it: a soft glow at the top and blurred blue orbs (white light by day, blue
+         glow at night). Fixed, so plates slide over it. The grid, beam and mask tokens are off in both themes. */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background:
+          conic-gradient(at 50% -5%, transparent 45%, var(--glass-beam) 50%, transparent 55%),
+          radial-gradient(70% 50% at 50% 0%, var(--glass-spot), transparent 70%),
+          radial-gradient(40% 35% at 88% 6%, var(--glass-orb-a), transparent 70%),
+          radial-gradient(45% 40% at 94% 68%, var(--glass-orb-b), transparent 70%),
+          radial-gradient(50% 35% at 30% 105%, var(--glass-orb-c), transparent 70%),
+          linear-gradient(var(--glass-grid) 1px, transparent 1px) 0 0 / 80px 80px,
+          linear-gradient(90deg, var(--glass-grid) 1px, transparent 1px) 0 0 / 80px 80px,
+          var(--glass-base);
+        -webkit-mask-image: var(--glass-mask);
+        mask-image: var(--glass-mask);
       }
 
       [hidden] {
@@ -126,25 +248,34 @@
         outline-offset: 2px;
       }
 
-      /* ── Type ── */
+      /* ── Type (Font.md): display semibold, tracking tightens as the size grows ── */
       h1,
-      h2 {
-        font-family: var(--font-serif);
-        font-weight: 400;
+      h2,
+      h3 {
+        font-family: var(--font-display);
+        font-weight: 600;
         color: var(--ink);
       }
 
       h2 {
-        font-size: 2.75rem;
-        line-height: 1.15;
-        letter-spacing: -0.015em;
+        font-size: 2.5rem;
+        line-height: 1.1;
+        letter-spacing: -0.01em;
       }
 
       h3 {
-        font-size: 1.25rem;
-        font-weight: 500;
-        line-height: 1.3;
-        letter-spacing: -0.01em;
+        font-size: 1.3125rem;
+        line-height: 1.24;
+        letter-spacing: 0.011em;
+      }
+
+      /* The largest headings carry a blue gradient: navy to blue by day, Glass.md's Skywash at night. */
+      h2,
+      .acceso-titulo {
+        background: var(--heading-gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
       }
 
       h4 {
@@ -154,6 +285,7 @@
 
       .eyebrow {
         font-size: 0.875rem;
+        font-weight: 600;
         color: var(--text-secondary);
         margin-bottom: 0.25rem;
       }
@@ -174,129 +306,116 @@
 
       /* ── Layout ── */
       .container {
-        max-width: 1200px;
+        max-width: 1440px;
         margin: 0 auto;
         padding: 0 2rem;
       }
 
-      /* Frosted glass only on the bars content scrolls under; cards and forms stay solid. */
-      .header,
-      .nav-tabs {
-        --glass: color-mix(in srgb, var(--canvas) 72%, transparent);
-      }
-
+      /* ── Top bar: one floating glass island with the logo, the sections and the account menu ── */
       .header {
         position: sticky;
         top: 0;
         z-index: 10;
-        background: var(--glass);
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        border-bottom: 1px solid var(--hairline);
-        padding: 1rem 0;
+        padding-top: 0.75rem;
       }
 
-      /* System setting "reduce transparency" or "increase contrast": the bars turn solid. */
+      .header-isla {
+        position: relative;
+        isolation: isolate;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        min-height: 60px;
+        padding: 0.5rem 0.5rem 0.5rem 1.25rem;
+        border-radius: var(--r-pill);
+      }
+
+      /* The glass is a layer behind the island: a backdrop-filter on the island itself would pin the phone
+         tab bar (position: fixed, inside it) to the island instead of the screen. */
+      .header-isla::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        border-radius: inherit;
+        background: var(--glass-sheen), var(--glass-fill-strong);
+        backdrop-filter: var(--blur-glass);
+        -webkit-backdrop-filter: var(--blur-glass);
+        box-shadow: var(--shadow-pop);
+      }
+
+      /* The phone tab bar: thinner glass, so the page reads through. */
+      .nav-tabs {
+        --glass: color-mix(in srgb, var(--canvas) 72%, transparent);
+      }
+
+      /* System setting "reduce transparency" or "increase contrast": every glass surface turns solid. */
       @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
-        .header,
+        :root {
+          --glass-fill: #ffffff;
+          --glass-fill-strong: #ffffff;
+        }
+
+        [data-theme="dark"] {
+          --glass-fill: #0d1830;
+          --glass-fill-strong: #0d1830;
+        }
+
         .nav-tabs {
           --glass: var(--canvas);
+        }
+
+        *,
+        *::before {
           backdrop-filter: none !important;
           -webkit-backdrop-filter: none !important;
         }
       }
 
-      .header-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
       .brand {
         display: flex;
         align-items: center;
+        flex-shrink: 0;
         margin: 0;
       }
 
       .brand .logo {
-        height: 1.75rem;
+        height: 1.5rem;
         width: auto;
         display: block;
         color: var(--ink);
       }
 
-      .header-acciones {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+      .brand .logo-marca {
+        display: none;
       }
 
-      /* Who is signed in: a quiet pill with an initial bubble. */
-      .usuario-actual {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.25rem 0.875rem 0.25rem 0.25rem;
-        border-radius: var(--r-pill);
-        background: var(--mist);
-        font-size: 0.875rem;
-        color: var(--ink);
+      .nav-principal {
+        flex: 1;
+        min-width: 0;
       }
 
-      .usuario-actual .icon {
-        width: 2rem;
-        height: 2rem;
-        padding: 0.375rem;
-        border-radius: 50%;
-        background: var(--canvas);
-        color: var(--accent-text);
-      }
-
-      .theme-toggle {
-        width: 44px;
-        height: 44px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid var(--hairline);
-        border-radius: 50%;
-        background: none;
-        color: var(--ink);
-        cursor: pointer;
-        transition: background-color 150ms ease-out;
-      }
-
-      .theme-toggle:hover {
-        background: var(--mist);
-      }
-
-      .theme-toggle .icon,
-      .close-btn .icon {
-        width: 22px;
-        height: 22px;
-      }
-
-      /* Section tabs: pill links; the current one is the filled ink lozenge. */
+      /* Sections: pill tabs; the current one is the filled ink lozenge. */
       .nav-tabs {
         display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin: 1.5rem 0 0.5rem;
+        justify-content: center;
+        gap: 0.25rem;
       }
 
       .nav-tab {
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
-        min-height: 44px;
-        padding: 0 1.125rem;
-        border: 1px solid transparent;
+        gap: 0.375rem;
+        min-height: 40px;
+        padding: 0 0.875rem;
+        border: none;
         border-radius: var(--r-pill);
         background: none;
         font: inherit;
-        font-size: 0.9375rem;
+        font-size: 0.875rem;
         font-weight: 500;
         color: var(--text-secondary);
+        white-space: nowrap;
         cursor: pointer;
         transition:
           background-color 150ms ease-out,
@@ -304,8 +423,8 @@
       }
 
       .nav-tab .icon {
-        width: 1.125rem;
-        height: 1.125rem;
+        width: 1rem;
+        height: 1rem;
       }
 
       .nav-tab:hover {
@@ -314,8 +433,180 @@
       }
 
       .nav-tab.active {
-        background: var(--ink);
-        color: var(--canvas);
+        background: var(--ctrl-bg-hover);
+        box-shadow: var(--ctrl-shadow);
+        color: var(--accent-text);
+        font-weight: 600;
+      }
+
+      /* Account: avatar and name. Opens a small glass menu (native popover) with who is signed in and the
+         way out, written out instead of a lone icon. */
+      .cuenta-btn {
+        display: inline-flex;
+        align-items: center;
+        flex-shrink: 0;
+        gap: 0.5rem;
+        min-height: 44px;
+        padding: 0.25rem 0.75rem 0.25rem 0.25rem;
+        border: none;
+        border-radius: var(--r-pill);
+        background: var(--ctrl-bg);
+        box-shadow: var(--ctrl-shadow);
+        font: inherit;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--ink);
+        cursor: pointer;
+        transition: background-color 150ms ease-out;
+      }
+
+      .cuenta-btn:hover {
+        background: var(--ctrl-bg-hover);
+      }
+
+      .cuenta-btn > .icon {
+        width: 1rem;
+        height: 1rem;
+        color: var(--text-secondary);
+        transition: transform 150ms ease-out;
+      }
+
+      .header:has(.menu-cuenta:popover-open) .cuenta-btn > .icon {
+        transform: rotate(180deg);
+      }
+
+      .avatar {
+        width: 36px;
+        height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 10px 12px -10px rgba(255, 255, 255, 0.6), 0 3px 10px -4px rgba(0, 113, 227, 0.45);
+        font-family: var(--font-display);
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: #ffffff;
+      }
+
+      .menu-cuenta {
+        /* Popovers open centered; JS places this one under its button. */
+        inset: auto;
+        margin: 0;
+        width: 280px;
+        padding: 0.5rem;
+        overflow: visible;
+        border: none;
+        border-radius: var(--r-floating);
+        /* Thicker than the other glass: it covers busy content (buttons) and holds a single action. */
+        background: color-mix(in srgb, var(--canvas) 94%, transparent);
+        backdrop-filter: var(--blur-glass);
+        -webkit-backdrop-filter: var(--blur-glass);
+        box-shadow: var(--shadow-float);
+        color: var(--ink);
+        transform-origin: top right;
+        transition:
+          opacity 150ms cubic-bezier(0.23, 1, 0.32, 1),
+          transform 150ms cubic-bezier(0.23, 1, 0.32, 1);
+      }
+
+      @starting-style {
+        .menu-cuenta:popover-open {
+          opacity: 0;
+          transform: scale(0.96);
+        }
+      }
+
+      .menu-cuenta-cabeza {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 0.75rem 1rem;
+        margin-bottom: 0.5rem;
+        border-bottom: 1px solid var(--hairline);
+      }
+
+      .menu-cuenta-cabeza .avatar {
+        width: 44px;
+        height: 44px;
+        font-size: 1.125rem;
+      }
+
+      .menu-nombre {
+        font-weight: 600;
+        line-height: 1.3;
+      }
+
+      .menu-detalle {
+        font-size: 0.8125rem;
+        color: var(--text-secondary);
+      }
+
+      .menu-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+        min-height: 44px;
+        padding: 0 0.75rem;
+        border: none;
+        border-radius: 12px;
+        background: none;
+        font: inherit;
+        font-size: 0.9375rem;
+        font-weight: 500;
+        color: var(--ink);
+        text-align: left;
+        cursor: pointer;
+        transition: background-color 150ms ease-out;
+      }
+
+      .menu-item:hover {
+        background: var(--mist);
+      }
+
+      .menu-item .icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        color: var(--text-secondary);
+      }
+
+      .close-btn .icon {
+        width: 22px;
+        height: 22px;
+      }
+
+      /* The island narrows in steps: first the name goes, then the tab icons, then the wordmark. */
+      @media (max-width: 1180px) {
+        .cuenta-nombre {
+          display: none;
+        }
+
+        .cuenta-btn {
+          padding-right: 0.5rem;
+        }
+      }
+
+      @media (max-width: 1060px) {
+        .nav-tab .icon {
+          display: none;
+        }
+      }
+
+      @media (max-width: 940px) {
+        .brand .logo-completo {
+          display: none;
+        }
+
+        .brand .logo-marca {
+          display: block;
+        }
+
+        .nav-tab {
+          padding: 0 0.75rem;
+        }
       }
 
       .content {
@@ -413,28 +704,31 @@
       }
 
       .btn-primary {
-        background: var(--accent);
+        background: var(--btn-primary-bg);
+        box-shadow: var(--btn-primary-shadow);
         color: #ffffff;
       }
 
       .btn-primary:hover {
-        background: var(--accent-hover);
+        background: var(--btn-primary-bg-hover);
       }
 
-      /* Ghost pill: the secondary action next to a primary one. */
+      /* Ghost pill: the secondary action next to a primary one, frosted like Glass.md's buttons. */
       .btn-edit,
-      .btn-secundario {
-        border-color: var(--ink);
+      .btn-secundario,
+      .btn-danger {
+        border-color: var(--ctrl-border);
+        background: var(--ctrl-bg);
+        box-shadow: var(--ctrl-shadow);
         color: var(--ink);
       }
 
       .btn-edit:hover,
       .btn-secundario:hover {
-        background: var(--mist);
+        background: var(--ctrl-bg-hover);
       }
 
       .btn-danger {
-        border-color: color-mix(in srgb, var(--danger-text) 45%, transparent);
         color: var(--danger-text);
       }
 
@@ -468,7 +762,8 @@
         justify-content: center;
         border: none;
         border-radius: 50%;
-        background: var(--mist);
+        background: var(--ctrl-bg);
+        box-shadow: var(--ctrl-shadow);
         color: var(--ink);
         cursor: pointer;
       }
@@ -513,9 +808,10 @@
         width: 100%;
         min-height: 48px;
         padding: 0.75rem 1rem;
-        border: 1px solid var(--field-border);
+        border: 1px solid var(--ctrl-border);
         border-radius: var(--r-input);
-        background: var(--canvas);
+        background: var(--ctrl-bg);
+        box-shadow: var(--ctrl-shadow);
         font: inherit;
         font-size: 1rem;
         color: var(--ink);
@@ -546,7 +842,7 @@
       input[type="file"] {
         padding: 0.5rem;
         border-style: dashed;
-        background: var(--fog);
+        border-color: rgba(40, 90, 160, 0.35);
         font-size: 0.875rem;
         color: var(--text-secondary);
         cursor: pointer;
@@ -556,9 +852,10 @@
         min-height: 32px;
         margin-right: 0.75rem;
         padding: 0 1rem;
-        border: 1px solid var(--ink);
+        border: 1px solid var(--ctrl-border);
+        box-shadow: var(--ctrl-shadow);
         border-radius: var(--r-pill);
-        background: var(--canvas);
+        background: var(--ctrl-bg);
         font: inherit;
         font-weight: 500;
         color: var(--ink);
@@ -656,6 +953,7 @@
         padding: 0.75rem 1rem;
         border-radius: var(--r-small);
         background: color-mix(in srgb, var(--danger-text) 10%, transparent);
+        box-shadow: inset 0 1px 0 var(--ctrl-highlight), inset 0 0 0 1px color-mix(in srgb, var(--danger-text) 25%, transparent);
         color: var(--danger-text);
         font-size: 0.9rem;
         font-weight: 500;
@@ -674,19 +972,15 @@
         height: 1.1rem;
       }
 
-      /* A form opens as a floating sheet over the page. */
+      /* A form opens as a floating glass sheet over the page. */
       .form-section {
         position: relative;
         max-width: 640px;
         margin: 0 0 2rem;
         padding: 2rem;
         border-radius: var(--r-card);
-        background: var(--canvas);
+        background: var(--glass-sheen), var(--glass-fill-strong);
         box-shadow: var(--shadow-float);
-      }
-
-      [data-theme="dark"] .form-section {
-        background: var(--mist);
       }
 
       .form-section > h3 {
@@ -708,7 +1002,8 @@
         margin: 0;
         padding: 0 0.75rem;
         border-radius: var(--r-small);
-        background: var(--mist);
+        background: var(--ctrl-bg);
+        box-shadow: var(--ctrl-shadow);
         font-size: 0.9375rem;
         font-weight: 400;
       }
@@ -718,6 +1013,7 @@
         height: 20px;
         min-height: 0;
         padding: 0;
+        box-shadow: none;
         accent-color: var(--accent);
       }
 
@@ -736,9 +1032,10 @@
         gap: 0.5rem;
         min-height: 40px;
         padding: 0.25rem 0.875rem 0.25rem 0.25rem;
-        border: 1px solid var(--hairline);
+        border: 1px solid var(--ctrl-border);
         border-radius: var(--r-pill);
-        background: none;
+        background: var(--ctrl-bg);
+        box-shadow: var(--ctrl-shadow);
         font: inherit;
         font-size: 0.875rem;
         font-weight: 500;
@@ -760,7 +1057,7 @@
       }
 
       .pasos .actual button {
-        border-color: var(--ink);
+        border-color: var(--accent);
         color: var(--ink);
       }
 
@@ -777,7 +1074,8 @@
       .pasos-barra {
         height: 6px;
         border-radius: var(--r-pill);
-        background: var(--mist);
+        background: var(--ctrl-bg);
+        box-shadow: var(--ctrl-shadow);
         overflow: hidden;
       }
 
@@ -812,19 +1110,19 @@
         margin-top: 0.5rem;
       }
 
-      /* ── Tables: a white sheet with a hairline edge ── */
+      /* ── Tables: a glass plate ── */
       table {
         width: 100%;
         border-collapse: collapse;
-        background: var(--canvas);
+        background: var(--glass-sheen), var(--glass-fill);
         border-radius: var(--r-floating);
         overflow: hidden;
-        box-shadow: var(--shadow-ring);
+        box-shadow: var(--shadow-glass);
       }
 
       th {
         padding: 0.75rem 1rem;
-        background: var(--fog);
+        background: color-mix(in srgb, var(--ink) 3%, transparent);
         border-bottom: 1px solid var(--hairline);
         text-align: left;
         font-size: 0.8125rem;
@@ -848,7 +1146,7 @@
       }
 
       tbody tr:hover {
-        background: var(--fog);
+        background: color-mix(in srgb, var(--ink) 4%, transparent);
       }
 
       td:last-child {
@@ -864,7 +1162,8 @@
         margin-right: 0.375rem;
         border: none;
         border-radius: 50%;
-        background: var(--mist);
+        background: var(--ctrl-bg);
+        box-shadow: var(--ctrl-shadow);
         vertical-align: middle;
       }
 
@@ -873,7 +1172,7 @@
       }
 
       td .btn:not(.btn-texto):hover {
-        background: var(--hairline);
+        background: var(--ctrl-bg-hover);
       }
 
       td .btn:last-child {
@@ -903,7 +1202,8 @@
       .sku {
         padding: 0.125rem 0.5rem;
         border-radius: 8px;
-        background: var(--mist);
+        background: var(--ctrl-bg);
+        box-shadow: var(--ctrl-shadow);
         font-family: var(--font-mono);
         font-size: 0.8125rem;
       }
@@ -944,6 +1244,8 @@
         .tabla-desplazable,
         .productos-tabla {
           overflow-x: auto;
+          scrollbar-width: thin;
+          scrollbar-color: color-mix(in srgb, var(--ink) 25%, transparent) transparent;
         }
       }
 
@@ -956,6 +1258,7 @@
         padding: 0.25rem 0.75rem;
         border-radius: var(--r-pill);
         background: color-mix(in srgb, var(--c) 12%, transparent);
+        box-shadow: inset 0 1px 0 var(--ctrl-highlight), inset 0 0 0 1px color-mix(in srgb, var(--c) 28%, transparent);
         color: var(--c);
         font-size: 0.8125rem;
         font-weight: 500;
@@ -985,6 +1288,14 @@
         gap: 0.625rem;
       }
 
+      /* Category tile and color swatch: glass tinted by the category color (currentColor / inline background),
+         with a lit edge, an outline in that color and the same diagonal sheen as the plates. */
+      .cat-tile,
+      .color-badge {
+        position: relative;
+        overflow: hidden;
+      }
+
       .cat-tile {
         width: 36px;
         height: 36px;
@@ -993,6 +1304,17 @@
         justify-content: center;
         flex-shrink: 0;
         border-radius: var(--r-image);
+        box-shadow: inset 0 1px 0 var(--ctrl-highlight), inset 0 0 0 1px color-mix(in srgb, currentColor 35%, transparent),
+          0 4px 10px -6px color-mix(in srgb, currentColor 70%, transparent);
+      }
+
+      .cat-tile::before,
+      .color-badge::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--glass-sheen);
+        pointer-events: none;
       }
 
       .cat-tile .icon {
@@ -1015,9 +1337,10 @@
         display: inline-block;
         width: 32px;
         height: 32px;
-        border-radius: 10px;
+        border-radius: var(--r-image);
         vertical-align: middle;
-        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.2),
+          0 0 0 1px color-mix(in srgb, var(--ink) 14%, transparent), 0 4px 10px -6px rgba(0, 0, 0, 0.45);
       }
 
       .cant {
@@ -1058,7 +1381,8 @@
         top: 88px;
         padding: 1.5rem;
         border-radius: var(--r-card);
-        background: var(--peach);
+        background: var(--glass-sheen), color-mix(in srgb, var(--peach) 62%, transparent);
+        box-shadow: var(--shadow-glass);
         color: var(--sienna);
       }
 
@@ -1085,8 +1409,9 @@
       }
 
       .resumen-totales dd {
+        font-family: var(--font-display);
         font-size: 1.375rem;
-        font-weight: 500;
+        font-weight: 600;
         font-variant-numeric: tabular-nums;
       }
 
@@ -1144,7 +1469,7 @@
         color: var(--sienna);
       }
 
-      @media (max-width: 1240px) {
+      @media (max-width: 1400px) {
         .productos-layout {
           flex-direction: column;
           align-items: stretch;
@@ -1169,7 +1494,8 @@
       .almacen-card {
         padding: 1.25rem 1.5rem;
         border-radius: var(--r-card);
-        background: var(--mist);
+        background: var(--glass-sheen), var(--glass-fill);
+        box-shadow: var(--shadow-glass);
       }
 
       .kpi-label {
@@ -1185,14 +1511,16 @@
         height: 2rem;
         padding: 0.4rem;
         border-radius: 50%;
-        background: var(--canvas);
+        background: var(--ctrl-bg);
+        box-shadow: var(--ctrl-shadow);
         color: var(--accent-text);
       }
 
       .kpi-value {
         margin-top: 0.75rem;
+        font-family: var(--font-display);
         font-size: 1.875rem;
-        font-weight: 500;
+        font-weight: 600;
         letter-spacing: -0.01em;
         line-height: 1.2;
         font-variant-numeric: tabular-nums;
@@ -1260,7 +1588,8 @@
         padding: 0;
         border: none;
         border-radius: 50%;
-        background: var(--mist);
+        background: var(--ctrl-bg);
+        box-shadow: var(--ctrl-shadow);
       }
 
       .alm-fila .btn:disabled {
@@ -1313,7 +1642,8 @@
         margin-top: 1rem;
         padding: 1.25rem 1.5rem;
         border-radius: var(--r-card);
-        background: var(--peach);
+        background: var(--glass-sheen), color-mix(in srgb, var(--peach) 62%, transparent);
+        box-shadow: var(--shadow-glass);
         color: var(--sienna);
         font-size: 0.9375rem;
       }
@@ -1348,7 +1678,7 @@
 
       .meter-seg {
         height: 100%;
-        box-shadow: inset -2px 0 0 var(--mist);
+        box-shadow: inset -2px 0 0 var(--canvas);
       }
 
       .meter-free {
@@ -1391,7 +1721,7 @@
       .cat-bar {
         height: 10px;
         border-radius: var(--r-pill);
-        background: var(--canvas);
+        background: var(--track);
         overflow: hidden;
       }
 
@@ -1438,7 +1768,8 @@
         margin-bottom: 1rem;
         padding: 0.875rem 1.25rem;
         border-radius: var(--r-small);
-        background: var(--peach);
+        background: var(--glass-sheen), color-mix(in srgb, var(--peach) 62%, transparent);
+        box-shadow: var(--shadow-glass);
         color: var(--sienna);
         font-size: 0.9375rem;
       }
@@ -1480,6 +1811,16 @@
         flex: 0 1 14rem;
       }
 
+      /* Export sits on the filters' baseline, the same height as the fields. */
+      .filtros-actividad > .btn {
+        align-self: flex-end;
+        min-height: 48px;
+      }
+
+      #valuacion > .btn {
+        margin-top: 0.75rem;
+      }
+
       /* ── Category picker ── */
       .icon-grid {
         --cat-color: #6e6e73;
@@ -1498,9 +1839,10 @@
         align-items: center;
         justify-content: center;
         margin: 0;
-        border: 1px solid var(--hairline);
+        border: 1px solid var(--ctrl-border);
         border-radius: var(--r-image);
-        background: var(--canvas);
+        background: var(--ctrl-bg);
+        box-shadow: var(--ctrl-shadow);
         color: var(--text-secondary);
         cursor: pointer;
         transition:
@@ -1548,13 +1890,38 @@
         gap: 1rem;
       }
 
+      /* The color well is the swatch itself, shaped like the icon tiles beside it. The hairline keeps white visible. */
       #cat-color {
-        width: 64px;
-        height: 64px;
+        width: 50px;
+        height: 50px;
         min-height: 0;
-        padding: 0.25rem;
-        border-radius: var(--r-small);
+        padding: 0;
+        border: none;
+        border-radius: var(--r-image);
+        background: none;
         cursor: pointer;
+        transition: transform 150ms ease-out;
+      }
+
+      #cat-color::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+
+      /* Separate rules: a browser drops a whole rule when one selector in it is another engine's prefix. */
+      #cat-color::-webkit-color-swatch {
+        border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+        border-radius: var(--r-image);
+      }
+
+      #cat-color::-moz-color-swatch {
+        border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+        border-radius: var(--r-image);
+      }
+
+      @media (hover: hover) and (pointer: fine) {
+        #cat-color:hover {
+          transform: scale(1.06);
+        }
       }
 
       .color-label {
@@ -1574,7 +1941,9 @@
         gap: 0.75rem;
         padding: 0.875rem 1.25rem;
         border-radius: var(--r-small);
-        background: var(--canvas);
+        background: var(--glass-fill-strong);
+        backdrop-filter: var(--blur-glass);
+        -webkit-backdrop-filter: var(--blur-glass);
         box-shadow: var(--shadow-pop);
         color: var(--ink);
         font-weight: 500;
@@ -1620,7 +1989,9 @@
         pointer-events: none;
         padding: 0.4rem 0.75rem;
         border-radius: var(--r-image);
-        background: var(--canvas);
+        background: var(--glass-fill-strong);
+        backdrop-filter: var(--blur-glass);
+        -webkit-backdrop-filter: var(--blur-glass);
         box-shadow: var(--shadow-pop);
         color: var(--ink);
         font-size: 0.85rem;
@@ -1690,7 +2061,8 @@
         height: 2.25rem;
         padding: 0.5rem;
         border-radius: 50%;
-        background: var(--mist);
+        background: var(--ctrl-bg);
+        box-shadow: var(--ctrl-shadow);
         color: var(--accent-text);
       }
 
@@ -1700,12 +2072,10 @@
         justify-self: end;
         padding: 2.25rem;
         border-radius: var(--r-card);
-        background: var(--canvas);
+        background: var(--glass-sheen), var(--glass-fill-strong);
+        backdrop-filter: var(--blur-glass);
+        -webkit-backdrop-filter: var(--blur-glass);
         box-shadow: var(--shadow-float);
-      }
-
-      [data-theme="dark"] .acceso-tarjeta {
-        background: var(--mist);
       }
 
       .acceso-tarjeta h1 {
@@ -1743,16 +2113,22 @@
       @media (max-width: 900px) {
         .acceso {
           grid-template-columns: 1fr;
-          gap: 2rem;
-          padding: 2rem 1rem;
+          align-content: start;
+          gap: 1.5rem;
+          padding: 1.5rem 1rem 2rem;
         }
 
         .acceso-intro .logo {
-          margin-bottom: 1.5rem;
+          height: 1.75rem;
+          margin-bottom: 1rem;
         }
 
         .acceso-titulo {
-          font-size: 2.25rem;
+          font-size: 1.875rem;
+        }
+
+        .acceso-texto {
+          display: none;
         }
 
         .acceso-puntos {
@@ -1772,7 +2148,20 @@
         }
 
         .header {
-          padding: 0.75rem 0;
+          padding-top: 0.5rem;
+        }
+
+        .header-isla {
+          min-height: 56px;
+          padding: 0.375rem 0.375rem 0.375rem 1rem;
+        }
+
+        .brand .logo-completo {
+          display: block;
+        }
+
+        .brand .logo-marca {
+          display: none;
         }
 
         h2 {
@@ -1822,10 +2211,12 @@
           padding: 0.375rem 0 0.25rem;
           border-radius: var(--r-small);
           font-size: 0.6875rem;
+          letter-spacing: -0.01em;
           white-space: nowrap;
         }
 
         .nav-tab .icon {
+          display: block;
           width: 1.5rem;
           height: 1.5rem;
         }
@@ -1836,6 +2227,7 @@
 
         .nav-tab.active {
           background: none;
+          box-shadow: none;
           color: var(--accent-text);
         }
 
@@ -1869,16 +2261,16 @@
           bottom: calc(4.75rem + env(safe-area-inset-bottom));
         }
 
-        .usuario-actual {
-          display: none;
-        }
-
         /* Tables become one card per row. */
+        /* overflow visible: the desktop clip would cut each row card's halo into a square strip. */
         table {
           display: block;
+          overflow: visible;
           border-radius: 0;
           box-shadow: none;
           background: transparent;
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
         }
 
         /* Block, so the clip applies: a table-group ignores width/overflow and would widen the page. */
@@ -1905,12 +2297,12 @@
           gap: 0.625rem;
           padding: 1rem 1.125rem;
           border-radius: var(--r-floating);
-          background: var(--canvas);
-          box-shadow: var(--shadow-ring);
+          background: var(--glass-sheen), var(--glass-fill-strong);
+          box-shadow: var(--shadow-glass);
         }
 
         tbody tr:hover {
-          background: var(--canvas);
+          background: var(--glass-sheen), var(--glass-fill-strong);
         }
 
         td {
@@ -1925,6 +2317,7 @@
 
         td::before {
           content: attr(data-label);
+          letter-spacing: -0.01em;
           font-size: 0.75rem;
           font-weight: 500;
           color: var(--text-secondary);
@@ -2058,9 +2451,9 @@
         <p class="acceso-titulo">Tu inventario <em>en orden</em>, tu negocio en regla.</p>
         <p class="acceso-texto">Existencias por almacén, alertas de stock y cada movimiento con su factura, en un solo lugar.</p>
         <ul class="acceso-puntos">
-          <li><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-warehouse"></use></svg> Varios almacenes con su capacidad</li>
-          <li><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-alert-triangle"></use></svg> Avisos de stock bajo y de almacén lleno</li>
-          <li><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-bill-list"></use></svg> Kárdex con el CFDI de cada compra y venta</li>
+          <li><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-warehouse"></use></svg> Varios almacenes con su capacidad</li>
+          <li><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-alert-triangle"></use></svg> Avisos de stock bajo y de almacén lleno</li>
+          <li><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-bill-list"></use></svg> Kárdex con el CFDI de cada compra y venta</li>
         </ul>
       </section>
 
@@ -2116,29 +2509,59 @@
     <div id="app" hidden>
     <header class="header">
       <div class="container">
-        <div class="header-content">
+        <div class="header-isla">
           <h1 class="brand">
-            <svg class="logo" viewBox="0 0 403 60" role="img" aria-label="ORDINUM">
+            <svg class="logo logo-completo" viewBox="0 0 403 60" role="img" aria-label="ORDINUM">
               <use href="#logo-ordinum"></use>
             </svg>
+            <svg class="logo logo-marca" viewBox="0 0 60 60" role="img" aria-label="ORDINUM">
+              <use href="#logo-ordinum" width="403" height="60"></use>
+            </svg>
           </h1>
-          <div class="header-acciones">
-            <span class="usuario-actual">
-              <svg class="icon" aria-hidden="true">
-                <use href="assets/icons.svg?v=6#i-user"></use>
-              </svg>
-              <span id="usuario-nombre"></span>
-            </span>
-            <button
-              class="theme-toggle"
-              id="btn-salir"
-              onclick="cerrarSesionUI()"
-              title="Cerrar sesión"
-              aria-label="Cerrar sesión"
-            >
-              <svg class="icon" aria-hidden="true">
-                <use href="assets/icons.svg?v=6#i-logout"></use>
-              </svg>
+          <nav class="nav-principal" aria-label="Secciones">
+            <div class="nav-tabs" role="tablist" onkeydown="moverEntrePestanas(event)">
+              <button class="nav-tab active" role="tab" id="tab-productos" aria-selected="true" aria-controls="productos" onclick="showTab('productos')">
+                <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-box"></use></svg>
+                Productos
+              </button>
+              <button class="nav-tab" role="tab" id="tab-categorias" aria-selected="false" aria-controls="categorias" tabindex="-1" onclick="showTab('categorias')">
+                <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-tag-price"></use></svg>
+                Categorías
+              </button>
+              <button class="nav-tab" role="tab" id="tab-almacen" aria-selected="false" aria-controls="almacen" tabindex="-1" onclick="showTab('almacen')">
+                <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-warehouse"></use></svg>
+                Almacén
+              </button>
+              <button class="nav-tab" role="tab" id="tab-kardex" aria-selected="false" aria-controls="kardex" tabindex="-1" onclick="showTab('kardex')">
+                <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-bill-list"></use></svg>
+                Kárdex
+              </button>
+              <button class="nav-tab solo-admin" role="tab" id="tab-usuarios" aria-selected="false" aria-controls="usuarios" tabindex="-1" onclick="showTab('usuarios')">
+                <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-users"></use></svg>
+                Usuarios
+              </button>
+              <button class="nav-tab solo-admin" role="tab" id="tab-actividad" aria-selected="false" aria-controls="actividad" tabindex="-1" onclick="showTab('actividad')">
+                <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-history"></use></svg>
+                Actividad
+              </button>
+            </div>
+          </nav>
+          <button class="cuenta-btn" id="btn-cuenta" popovertarget="menu-cuenta">
+            <span class="avatar" aria-hidden="true"></span>
+            <span class="cuenta-nombre" id="usuario-nombre"></span>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-chevron-down"></use></svg>
+          </button>
+          <div class="menu-cuenta" id="menu-cuenta" popover>
+            <div class="menu-cuenta-cabeza">
+              <span class="avatar" aria-hidden="true"></span>
+              <div>
+                <p class="menu-nombre" id="menu-nombre"></p>
+                <p class="menu-detalle" id="menu-detalle"></p>
+              </div>
+            </div>
+            <button class="menu-item" id="btn-salir" onclick="cerrarSesionUI()">
+              <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-logout"></use></svg>
+              Cerrar sesión
             </button>
           </div>
         </div>
@@ -2146,34 +2569,6 @@
     </header>
 
     <main class="container">
-      <nav aria-label="Secciones">
-        <div class="nav-tabs" role="tablist" onkeydown="moverEntrePestanas(event)">
-          <button class="nav-tab active" role="tab" id="tab-productos" aria-selected="true" aria-controls="productos" onclick="showTab('productos')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-box"></use></svg>
-            Productos
-          </button>
-          <button class="nav-tab" role="tab" id="tab-categorias" aria-selected="false" aria-controls="categorias" tabindex="-1" onclick="showTab('categorias')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-tag-price"></use></svg>
-            Categorías
-          </button>
-          <button class="nav-tab" role="tab" id="tab-almacen" aria-selected="false" aria-controls="almacen" tabindex="-1" onclick="showTab('almacen')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-warehouse"></use></svg>
-            Almacén
-          </button>
-          <button class="nav-tab" role="tab" id="tab-kardex" aria-selected="false" aria-controls="kardex" tabindex="-1" onclick="showTab('kardex')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-bill-list"></use></svg>
-            Kárdex
-          </button>
-          <button class="nav-tab solo-admin" role="tab" id="tab-usuarios" aria-selected="false" aria-controls="usuarios" tabindex="-1" onclick="showTab('usuarios')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-users"></use></svg>
-            Usuarios
-          </button>
-          <button class="nav-tab solo-admin" role="tab" id="tab-actividad" aria-selected="false" aria-controls="actividad" tabindex="-1" onclick="showTab('actividad')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-history"></use></svg>
-            Actividad
-          </button>
-        </div>
-      </nav>
 
       <!-- PRODUCTOS -->
       <div id="productos" class="content active" role="tabpanel" aria-labelledby="tab-productos">
@@ -2184,13 +2579,13 @@
             <p class="page-desc">Lo que tienes, dónde está y si conviene reabastecer u ofertar.</p>
           </div>
           <button class="btn btn-primary" id="btn-nuevo-producto" onclick="showForm('producto')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-plus"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-plus"></use></svg>
             Agregar producto
           </button>
         </header>
         <div id="producto-form" class="form-section" style="display: none">
           <button type="button" onclick="closeForm('producto')" class="close-btn" aria-label="Cerrar formulario">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-x"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-x"></use></svg>
           </button>
           <h3>Agregar producto</h3>
           <form onsubmit="guardarProducto(event)" data-pasos novalidate>
@@ -2247,8 +2642,8 @@
             </fieldset>
             <p class="form-error" id="producto-error" role="alert" hidden></p>
             <div class="pasos-acciones">
-              <button class="btn btn-secundario" type="button" data-atras><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-arrow-left"></use></svg> Atrás</button>
-              <button class="btn btn-primary" type="button" data-continuar>Continuar <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-arrow-right"></use></svg></button>
+              <button class="btn btn-secundario" type="button" data-atras><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-arrow-left"></use></svg> Atrás</button>
+              <button class="btn btn-primary" type="button" data-continuar>Continuar <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-arrow-right"></use></svg></button>
               <button class="btn btn-primary" type="submit" data-enviar>Guardar producto</button>
             </div>
           </form>
@@ -2256,7 +2651,7 @@
         <div class="barra-lista">
           <div class="buscador">
             <label for="prod-buscar" class="sr-only">Buscar productos</label>
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-search"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-search"></use></svg>
             <input type="search" id="prod-buscar" data-filtra="productos-table" placeholder="Busca por nombre, SKU o categoría" autocomplete="off" oninput="filtrarTabla('productos-table', 'prod-conteo')" />
           </div>
           <p class="conteo" id="prod-conteo" aria-live="polite"></p>
@@ -2310,13 +2705,13 @@
             <p class="page-desc">Agrupa tus productos con un color y un icono para encontrarlos de un vistazo.</p>
           </div>
           <button class="btn btn-primary solo-admin" id="btn-nuevo-categoria" onclick="showForm('categoria')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-plus"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-plus"></use></svg>
             Agregar categoría
           </button>
         </header>
         <div id="categoria-form" class="form-section" style="display: none">
           <button type="button" onclick="closeForm('categoria')" class="close-btn" aria-label="Cerrar formulario">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-x"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-x"></use></svg>
           </button>
           <h3>Agregar categoría</h3>
           <form onsubmit="guardarCategoria(event)" data-pasos novalidate>
@@ -2347,7 +2742,7 @@
                 <legend>Icono</legend>
                 <div class="buscador icon-buscar">
                   <label for="cat-icon-buscar" class="sr-only">Buscar icono</label>
-                  <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-search"></use></svg>
+                  <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-search"></use></svg>
                   <input type="search" id="cat-icon-buscar" placeholder="Busca un icono: ropa, café, oficina…" autocomplete="off" oninput="filtrarIconos(this.value)" />
                 </div>
                 <div class="icon-grid" id="cat-icon-grid"></div>
@@ -2355,8 +2750,8 @@
             </fieldset>
             <p class="form-error" id="categoria-error" role="alert" hidden></p>
             <div class="pasos-acciones">
-              <button class="btn btn-secundario" type="button" data-atras><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-arrow-left"></use></svg> Atrás</button>
-              <button class="btn btn-primary" type="button" data-continuar>Continuar <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-arrow-right"></use></svg></button>
+              <button class="btn btn-secundario" type="button" data-atras><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-arrow-left"></use></svg> Atrás</button>
+              <button class="btn btn-primary" type="button" data-continuar>Continuar <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-arrow-right"></use></svg></button>
               <button class="btn btn-primary" type="submit" data-enviar>Guardar categoría</button>
             </div>
           </form>
@@ -2364,7 +2759,7 @@
         <div class="barra-lista">
           <div class="buscador">
             <label for="cat-buscar" class="sr-only">Buscar categorías</label>
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-search"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-search"></use></svg>
             <input type="search" id="cat-buscar" data-filtra="categorias-table" placeholder="Busca una categoría" autocomplete="off" oninput="filtrarTabla('categorias-table', 'cat-conteo')" />
           </div>
           <p class="conteo" id="cat-conteo" aria-live="polite"></p>
@@ -2418,7 +2813,7 @@
               onclick="agregarFilaAlmacen()"
             >
               <svg class="icon" aria-hidden="true">
-                <use href="assets/icons.svg?v=6#i-plus"></use>
+                <use href="assets/icons.svg?v=7#i-plus"></use>
               </svg>
               Agregar otro almacén
             </button>
@@ -2449,15 +2844,15 @@
 
           <div class="kpi-row">
             <div class="kpi">
-              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-warehouse"></use></svg> Capacidad total</div>
+              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-warehouse"></use></svg> Capacidad total</div>
               <div class="kpi-value" id="alm-capacidad"></div>
             </div>
             <div class="kpi">
-              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-box"></use></svg> Espacio usado</div>
+              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-box"></use></svg> Espacio usado</div>
               <div class="kpi-value" id="alm-usado"></div>
             </div>
             <div class="kpi">
-              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-check"></use></svg> Espacio libre</div>
+              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-check"></use></svg> Espacio libre</div>
               <div class="kpi-value" id="alm-libre"></div>
             </div>
           </div>
@@ -2490,14 +2885,14 @@
             <p class="page-desc">Entradas y salidas de cada producto con su factura (CFDI). Las existencias se actualizan solas.</p>
           </div>
           <button class="btn btn-primary" id="btn-nuevo-movimiento" onclick="showForm('movimiento')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-plus"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-plus"></use></svg>
             Registrar movimiento
           </button>
         </header>
 
         <div id="movimiento-form" class="form-section" style="display: none">
           <button type="button" onclick="closeForm('movimiento')" class="close-btn" aria-label="Cerrar formulario">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-x"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-x"></use></svg>
           </button>
           <h3>Registrar movimiento</h3>
           <form onsubmit="guardarMovimiento(event)" data-pasos novalidate>
@@ -2573,8 +2968,8 @@
             </fieldset>
             <p class="form-error" id="movimiento-error" role="alert" hidden></p>
             <div class="pasos-acciones">
-              <button class="btn btn-secundario" type="button" data-atras><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-arrow-left"></use></svg> Atrás</button>
-              <button class="btn btn-primary" type="button" data-continuar>Continuar <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-arrow-right"></use></svg></button>
+              <button class="btn btn-secundario" type="button" data-atras><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-arrow-left"></use></svg> Atrás</button>
+              <button class="btn btn-primary" type="button" data-continuar>Continuar <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-arrow-right"></use></svg></button>
               <button class="btn btn-primary" type="submit" data-enviar>Registrar movimiento</button>
             </div>
           </form>
@@ -2582,7 +2977,7 @@
 
         <div id="factura-form" class="form-section" style="display: none">
           <button type="button" onclick="closeForm('factura')" class="close-btn" aria-label="Cerrar formulario">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-x"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-x"></use></svg>
           </button>
           <h3>Agregar factura</h3>
           <p class="ayuda" id="fac-resumen"></p>
@@ -2612,21 +3007,22 @@
         <section id="valuacion" class="solo-admin" aria-labelledby="valuacion-titulo">
           <h3 id="valuacion-titulo">Valor del inventario y costo de lo vendido</h3>
           <p class="ayuda">Método de costo promedio (LISR, art. 41). Ventas y costo son del mes elegido; el valor del inventario es el de hoy.</p>
+          <button class="btn btn-secundario" type="button" onclick="descargarValuacionCsv()">Descargar valuación (CSV)</button>
           <div class="kpi-row">
             <div class="kpi">
-              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-box"></use></svg> Valor del inventario hoy</div>
+              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-box"></use></svg> Valor del inventario hoy</div>
               <div class="kpi-value" id="val-inventario"></div>
             </div>
             <div class="kpi">
-              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-tag-price"></use></svg> Ventas netas del mes</div>
+              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-tag-price"></use></svg> Ventas netas del mes</div>
               <div class="kpi-value" id="val-ventas"></div>
             </div>
             <div class="kpi">
-              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-bill-list"></use></svg> Costo de lo vendido</div>
+              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-bill-list"></use></svg> Costo de lo vendido</div>
               <div class="kpi-value" id="val-costo"></div>
             </div>
             <div class="kpi">
-              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-check"></use></svg> Utilidad bruta</div>
+              <div class="kpi-label"><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-check"></use></svg> Utilidad bruta</div>
               <div class="kpi-value" id="val-utilidad"></div>
             </div>
           </div>
@@ -2655,11 +3051,12 @@
           <div class="form-group">
             <label for="kdx-producto">Producto</label>
             <div class="buscador">
-              <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-search"></use></svg>
+              <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-search"></use></svg>
               <input type="search" id="kdx-producto" list="kdx-productos" placeholder="Nombre o SKU" autocomplete="off" oninput="pintarKardex()" />
               <datalist id="kdx-productos"></datalist>
             </div>
           </div>
+          <button class="btn btn-secundario" type="button" onclick="descargarKardexCsv()">Descargar CSV del mes</button>
         </div>
         <div class="tabla-desplazable">
           <table id="kardex-table">
@@ -2689,13 +3086,13 @@
             <p class="page-desc">Quién puede entrar al sistema y a qué almacenes.</p>
           </div>
           <button class="btn btn-primary" id="btn-nuevo-usuario" onclick="showForm('usuario')">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-plus"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-plus"></use></svg>
             Agregar usuario
           </button>
         </header>
         <div id="usuario-form" class="form-section" style="display: none">
           <button type="button" onclick="closeForm('usuario')" class="close-btn" aria-label="Cerrar formulario">
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-x"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-x"></use></svg>
           </button>
           <h3>Nuevo usuario</h3>
           <form onsubmit="guardarUsuario(event)" data-pasos novalidate>
@@ -2738,8 +3135,8 @@
             </fieldset>
             <p class="form-error" id="usuario-error" role="alert" hidden></p>
             <div class="pasos-acciones">
-              <button class="btn btn-secundario" type="button" data-atras><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-arrow-left"></use></svg> Atrás</button>
-              <button class="btn btn-primary" type="button" data-continuar>Continuar <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-arrow-right"></use></svg></button>
+              <button class="btn btn-secundario" type="button" data-atras><svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-arrow-left"></use></svg> Atrás</button>
+              <button class="btn btn-primary" type="button" data-continuar>Continuar <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-arrow-right"></use></svg></button>
               <button class="btn btn-primary" type="submit" data-enviar>Guardar usuario</button>
             </div>
           </form>
@@ -2747,7 +3144,7 @@
         <div class="barra-lista">
           <div class="buscador">
             <label for="usu-buscar" class="sr-only">Buscar usuarios</label>
-            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=6#i-search"></use></svg>
+            <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-search"></use></svg>
             <input type="search" id="usu-buscar" data-filtra="usuarios-table" placeholder="Busca por nombre o usuario" autocomplete="off" oninput="filtrarTabla('usuarios-table', 'usu-conteo')" />
           </div>
           <p class="conteo" id="usu-conteo" aria-live="polite"></p>
@@ -2779,7 +3176,10 @@
         <div class="filtros-actividad">
           <div class="form-group">
             <label for="act-buscar">Buscar</label>
-            <input type="search" id="act-buscar" placeholder="Usuario, producto, acción…" oninput="pintarActividad()" />
+            <div class="buscador">
+              <svg class="icon" aria-hidden="true"><use href="assets/icons.svg?v=7#i-search"></use></svg>
+              <input type="search" id="act-buscar" placeholder="Usuario, producto, acción…" autocomplete="off" oninput="pintarActividad()" />
+            </div>
           </div>
           <div class="form-group">
             <label for="act-area">Área</label>
@@ -2846,7 +3246,7 @@
       }
 
       // Bump ?v= (here and in the HTML) when icons.svg changes, so phones drop their cached copy.
-      const ICON_SPRITE = "assets/icons.svg?v=6";
+      const ICON_SPRITE = "assets/icons.svg?v=7";
       const DEFAULT_CAT_ICON = "box";
       const DEFAULT_CAT_COLOR = "#6E6E73";
 
@@ -3922,8 +4322,12 @@
       async function entrar(usuario) {
         usuarioActual = usuario;
         document.body.classList.toggle("es-admin", usuario.rol === "admin");
+        document.querySelectorAll(".avatar").forEach((a) => (a.textContent = usuario.nombre.trim().charAt(0).toUpperCase()));
         document.getElementById("usuario-nombre").textContent = usuario.nombre;
-        document.getElementById("btn-salir").setAttribute("aria-label", `Cerrar sesión de ${usuario.nombre}`);
+        document.getElementById("menu-nombre").textContent = usuario.nombre;
+        document.getElementById("menu-detalle").textContent =
+          `@${usuario.usuario} · ${usuario.rol === "admin" ? "Administrador" : "Usuario"}`;
+        document.getElementById("btn-cuenta").setAttribute("aria-label", `Cuenta de ${usuario.nombre}`);
         document.getElementById("acceso").hidden = true;
         document.getElementById("app").hidden = false;
         cargarCategorias();
@@ -4008,6 +4412,7 @@
       let kardex = [];
       let productosKardex = [];
       let facturaDeMovimiento = null;
+      let valuacion = null;
 
       // [label, color, direction] per movement type.
       const TIPOS_MOVIMIENTO = {
@@ -4026,6 +4431,60 @@
       function mesActual() {
         const hoy = new Date();
         return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
+      }
+
+      // CSV for the accountant, built from what the page already loaded. The BOM keeps accents right in Excel.
+      // Text that starts like a formula (= + - @, tab) gets a leading ' so Excel shows it instead of running it;
+      // numbers pass as numbers, so negative quantities stay intact.
+      function descargarCsv(nombre, filas) {
+        const celda = (v) => {
+          if (typeof v === "number") return String(v);
+          const texto = String(v ?? "");
+          return `"${(/^[=+\-@\t\r]/.test(texto) ? `'${texto}` : texto).replace(/"/g, '""')}"`;
+        };
+        const csv = filas.map((fila) => fila.map(celda).join(",")).join("\r\n");
+        const enlace = document.createElement("a");
+        enlace.href = URL.createObjectURL(new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" }));
+        enlace.download = nombre;
+        enlace.click();
+        setTimeout(() => URL.revokeObjectURL(enlace.href), 1000);
+      }
+
+      const numeroCsv = (n) => (n === null || n === undefined || n === "" ? "" : Number(n));
+
+      function descargarKardexCsv() {
+        descargarCsv(`kardex-${document.getElementById("kdx-mes").value}.csv`, [
+          ["Fecha", "Movimiento", "Producto", "SKU", "Almacén", "Cantidad", "Costo unitario", "Precio unitario", "Folio fiscal", "RFC", "Nota", "Usuario"],
+          ...kardex.map((m) => [
+            m.fecha,
+            TIPOS_MOVIMIENTO[m.tipo]?.[0] ?? m.tipo,
+            m.producto_nombre,
+            m.producto_sku,
+            m.tipo === "traslado" ? `${m.almacen ?? ""} → ${m.almacen_destino ?? ""}` : (m.almacen ?? ""),
+            numeroCsv(m.cantidad),
+            numeroCsv(m.costo_unitario),
+            numeroCsv(m.precio_unitario),
+            m.cfdi_uuid,
+            m.rfc,
+            m.nota,
+            m.usuario,
+          ]),
+        ]);
+      }
+
+      function descargarValuacionCsv() {
+        if (!valuacion) return;
+        const v = valuacion;
+        descargarCsv(`valuacion-${v.mes}.csv`, [
+          ["Producto", "SKU", "Existencia", "Costo promedio", "Valor"],
+          ...v.productos.map((p) => [p.nombre, p.sku, numeroCsv(p.cantidad), numeroCsv(p.costo_promedio), numeroCsv(p.valor)]),
+          [],
+          ["Valor del inventario hoy", numeroCsv(v.valor_inventario)],
+          [`Compras del mes (${v.mes})`, numeroCsv(v.compras)],
+          [`Ventas netas del mes (${v.mes})`, numeroCsv(v.ventas_netas)],
+          [`Costo de lo vendido (${v.mes})`, numeroCsv(v.costo_vendido)],
+          [`Utilidad bruta (${v.mes})`, numeroCsv(v.utilidad_bruta)],
+        ]);
       }
 
       async function cargarKardex() {
@@ -4112,6 +4571,7 @@
       async function cargarValuacion(mes) {
         try {
           const v = await api(`${API}?resource=valuacion&mes=${mes}`);
+          valuacion = v;
           document.getElementById("val-inventario").textContent = fmtDinero(v.valor_inventario);
           document.getElementById("val-ventas").textContent = fmtDinero(v.ventas_netas);
           document.getElementById("val-costo").textContent = fmtDinero(v.costo_vendido);
@@ -4586,15 +5046,24 @@
         return productos.map((p) => `<option value="${escapeHtml(`${p.nombre} · ${p.sku}`)}"></option>`).join("");
       }
 
+      // The list text, or a bare SKU: what a barcode scanner types (then Enter moves to the next step).
       function productoDeMovimiento() {
         const texto = document.getElementById("mov-producto").value.trim();
-        return productosKardex.find((p) => `${p.nombre} · ${p.sku}` === texto);
+        return productosKardex.find((p) => `${p.nombre} · ${p.sku}` === texto || p.sku.toUpperCase() === texto.toUpperCase());
       }
 
       function validarProductoMovimiento() {
         const campo = document.getElementById("mov-producto");
         campo.setCustomValidity(campo.value && !productoDeMovimiento() ? "Elige un producto de la lista." : "");
       }
+
+      // The account menu opens under its button, right edges aligned (popovers open centered by default).
+      document.getElementById("menu-cuenta").addEventListener("beforetoggle", (e) => {
+        if (e.newState !== "open") return;
+        const boton = document.getElementById("btn-cuenta").getBoundingClientRect();
+        e.target.style.top = `${boton.bottom + 8}px`;
+        e.target.style.right = `${document.documentElement.clientWidth - boton.right}px`;
+      });
 
       // Inicializar
       prepararCamposPassword();
