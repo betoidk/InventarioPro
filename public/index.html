@@ -833,6 +833,13 @@
         box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
       }
 
+      /* The open list is drawn by the system from the field's background color. The field's glass is only a
+         gradient image, so it falls back to light grey under light text; give the options a solid surface. */
+      option {
+        background-color: var(--canvas);
+        color: var(--ink);
+      }
+
       textarea {
         min-height: 96px;
         resize: vertical;
